@@ -1,40 +1,5 @@
-// Run program: Ctrl + F5 or Debug > Start Without Deb
-// 
-// ugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
-
-#include <iostream>
-#include <exception>
-#include "etvo.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <algorithm>
-#include <cassert>
-
-using namespace std;  //this imports the standard library, every cout and vector 
-using namespace etvo; //just a library :P every matrix and series. all elements from the library
-
-typedef struct {      //represents a tuple of two integers
-	int left;
-	int right;
-} route_struct;            //tuple is a container of two elements of any set 
-
-typedef struct {
-	vector<route_struct> route;
-	vector<int> transportationTime;
-	vector<int> mvoementTime;
-	vector<int> processingTime;
-} info_products;
+#include "ElectroPlatingLines.h"
 //initializes a matrix of dimensions n_transitions x n_transitions. This matrix is matrix A of a max-plus linear system, written in the domain of daters
-matrix<series> A_matrix(info_products inputs);
 vector<matrix<series>> A_multi_product(vector<info_products> inputs) {
 	int linputs = inputs.size();
 	vector<matrix<series>> A_matrices;
