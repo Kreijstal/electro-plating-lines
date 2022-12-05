@@ -177,14 +177,14 @@ int main() {
 	//		
 	//	}
 	//}
-	gd r(1,5);
+	//gd r(1,5);
 	//r = gd(1, 3);
 	//matrix<series> U(1,1);
 	//U(0, 0) = ((poly) r+gd(1, infinit));
 	//std::cout << "\n r= " << r << std::endl;
-	poly a = (poly)r + gd(0,4);
-	a.isE();
-	std::cout << "\n a= " << a.star() << std::endl;
+	//poly a = (poly)r + gd(0,4);
+	//a.isE();
+	//std::cout << "\n a= " << a.star() << std::endl;
 
 	getchar();
 
