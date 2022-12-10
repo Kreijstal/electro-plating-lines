@@ -24,6 +24,9 @@
     <ClCompile Include="ElectroPlatingLines.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="multi_robot.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Hadamard_product_counters\etvo.h">

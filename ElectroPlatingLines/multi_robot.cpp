@@ -1,4 +1,38 @@
 #include "ElectroPlatingLines.h"
+
+/* Define a struct named "robot_arm_1" that represents a robot arm
+struct robot_arm_1
+{    // Define a member named "robot_1_movement_time" that is a vector of ints
+    std::vector<int> robot_1_movement_time;
+    std::vector<int> robot_1_transport_time;
+    std::vector<int> robot_1_processing_time;
+    std::vector<tuple<int,int>> robot_1_route;
+};
+
+// Create an instance of the "robot_arm_1" struct named "arm"
+robot_arm_1 arm;
+// Initialize the "robot_1_movement_time" member of "arm" with the specified vector of ints
+arm.robot_1_movement_time = { 2, 3, 1};
+arm.robot_1_transport_time = { 1, 2, 3};
+arm.robot_1_processing_time = { 5, 4, 3};
+arm.robot_1_route = {(0,2),(2,1),(1,3)};
+
+struct robot_arm_2
+{ 
+    std::vector<int> robot_2_movement_time;
+    std::vector<int> robot_2_transport_time;
+    std::vector<int> robot_2_processing_time;
+    std::vector<tuple<int, int>> robot_2_route;
+};
+
+robot_arm_2 arm;
+arm.robot_2_movement_time = { 2, 3, 1, 5 };
+arm.robot_2_transport_time = { 1, 2, 3, 4 };
+arm.robot_2_processing_time = { 5, 4, 3, 2 };
+arm.robot_2_route = { (3,5),(5,4),(4,6) };
+*/
+
+
 // 18. November 2022 Freitag. EN Gebaeude //
 //switched max plus, define matrices. a for product a, b for product b. once u have them u can combine them. problem is getting the matrices. 
 //robot follows the same route, and products stay there for the same time. 

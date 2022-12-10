@@ -17,6 +17,7 @@ enum class transition {
 	IO,
 	tank
 };
+/*This is the signature for a C++ function named getMatrixIndex that takes two arguments: a std::variant object named t and an int named matrixlength. The std::variant object t can hold either a value of type IO or a value of type Tank. The function returns an int.*/
 int getMatrixIndex(std::variant<IO, Tank> t,int matrixlength) {
 
 	// Use the std::visit function to access the IO enum class based on the value of the container variant
@@ -29,13 +30,13 @@ int getMatrixIndex(std::variant<IO, Tank> t,int matrixlength) {
 				return 0;
 				break;
 			case IO::OUTPUT:
-				return matrixlength - 1;
+				return 2*matrixlength - 1;
 				break;
 			}
 		//	std::cout << "IO enum class" << std::endl;
 		}
 		else if constexpr (std::is_same_v<T, Tank>) {
-			// Use the IOClass class here
+			// Use the Tank class here
 			int a=1;
 			a += arg.index * 2;
 			return arg.io == IO::OUTPUT ? a + 1 : a;
@@ -115,13 +116,17 @@ matrix<series> A_matrix(info_products inputs) {
 		//output_{i-1}->input_i
 		//A(2 * i + 1, 2 * i) = gd(0, taup[i]);
 	//}
+	 for (int i = 0;i < inpLen - 1;i++) {
+		 cout << "(" << get<0>(minput[i+1]) << "," << get<0>(minput[i]) << " ) " << "= (" << 2 * i + 1 << "," << 2 * i << ")"<<endl;
+	//	A(get<1>(minput[i]), get<0>(minput[i+1])) = gd(0, taup[i]);
+	}
 	A(getMatrixIndex(Tank{ 0,IO::INPUT }, t), getMatrixIndex(IO::INPUT, t)) = gd(0, taup[0]);
 	for (int i = 1;i < inpLen;i++) {
 		A(getMatrixIndex(Tank{ i,IO::INPUT }, t), getMatrixIndex(Tank{ i-1,IO::OUTPUT }, t)) = gd(0, taup[i]);
 	}
 	//this loop sets all elements in matrix A related to the movement of the hoist without grabbing a piece, except for the movement from tank x(T+1) to tank x'(T+1) = 0 (input tank), which is set in the following step
 	for (int i = 0;i < inpLen-1;i++) {
-		//0-> 0.left
+		//0-> 0.left	
 		//1-> 0.right
 		//2-> 1.left
 		//3-> 1.right
