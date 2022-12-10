@@ -159,7 +159,6 @@
     <ClCompile Include="..\..\Hadamard_product_counters\etvo.cpp" />
     <ClCompile Include="ElectroPlatingLines.cpp" />
     <ClCompile Include="multiproduct.cpp" />
-    <ClCompile Include="multi_robot.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Hadamard_product_counters\etvo.h" />

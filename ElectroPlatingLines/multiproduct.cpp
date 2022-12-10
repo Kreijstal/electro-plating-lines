@@ -38,7 +38,8 @@ int main() {
 	//How can I find A star of a switched linear system, given a schedule
 	vector<info_products> p = {
 		{ { {1,2},{3,3},{4,1},{2,4},{5,0} },//input
-	{ 2, 3, 5, 7,8 },//taup //transportation
+	//{ 2, 3, 5, 7,8 },//taup //transportation
+	{ 5, 7, 3, 8,2 },
 	{ 11, 99, 17, 19, 20 },//tau //movement
 	{ 23, 29, 31, 37 } }, //processing
 
@@ -57,7 +58,8 @@ int main() {
 
 
 	vector<matrix<series>> A = A_multi_product(p);
-
+	//assert((void("no A[0](1,0)"), A[0](1, 0) == gd(0, 2)));
+	//assert((void("no A[0](2,1)"), A[0](2, 1) == gd(0, 31)));
 	//int length = p.route.size() - 1;
 	//matrix<series> B = B_matrix(length);
 	//matrix<series> C = C_matrix(length);
