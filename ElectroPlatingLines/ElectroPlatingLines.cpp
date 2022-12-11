@@ -2,17 +2,62 @@
 #include <variant>
 #include <iostream>
 #include <functional>
+#include <cinttypes>
+#include <cstddef>
 
+//code from https://stackoverflow.com/a/55113454/10000823
+class hash_tuple {
+	template<class T>
+	struct component {
+		const T& value;
+		component(const T& value) : value(value) {}
+		uintmax_t operator,(uintmax_t n) const {
+			n ^= std::hash<T>()(value);
+			n ^= n << (sizeof(uintmax_t) * 4 - 1);
+			return n ^ std::hash<uintmax_t>()(n);
+		}
+	};
+
+public:
+	template<class Tuple>
+	size_t operator()(const Tuple& tuple) const {
+		return std::hash<uintmax_t>()(
+			std::apply([](const auto& ... xs) { return (component(xs), ..., 0); }, tuple));
+	}
+};
 enum class IO {
 	INPUT,
 	OUTPUT
 };
+
+namespace std {
+	template<>
+	struct hash<IO> {
+		size_t operator()(const IO& io) const {
+			if (io == IO::INPUT) {
+				return std::hash<int>()(0);
+			}
+			else {
+				return std::hash<int>()(1);
+			}
+		}
+	};
+}
 
 class Tank {
 public:
 	int index;
 	IO io;
 };
+
+namespace std {
+	template<>
+	struct hash<Tank> {
+		size_t operator()(const Tank& tank) const {
+			return std::hash<int>()(tank.index) ^ std::hash<IO>()(tank.io);
+		}
+	};
+}
 
 /*The Transition class is defined as a variant that can either be an IO object or a Tank object. The IO class is an enumeration with two possible values: INPUT and OUTPUT. The Tank class has two public members: an index integer, and an io variable of type IO.*/
 typedef std::variant<IO, Tank> Transition;
@@ -57,17 +102,18 @@ std::ostream& operator<<(std::ostream& os, const std::tuple<Transition, Transiti
 	return os;
 }
 
-void printVectorPinput(const std::vector<tuple<Transition, Transition>>& vec) {
-	std::cout << "Vector: [";
+std::ostream& operator<<(std::ostream& out, const std::vector<tuple<Transition, Transition>>& vec) {
+	out << "Vector: [";
 	bool first = true;
 	for (const auto& item : vec) {
 		if (!first) {
-			std::cout << ", ";
+			out << ", ";
 		}
-		std::cout << item;
+		out << item;
 		first = false;
 	}
-	std::cout << "]" << std::endl;
+	out << "]" << std::endl;
+	return out;
 }
 /*This is the signature for a C++ function named getMatrixIndex that takes two arguments: a std::variant object named t and an int named matrixlength. The std::variant object t can hold either a value of type IO or a value of type Tank. The function returns an int.*/
 int getMatrixIndex(Transition t,int matrixlength) {
@@ -102,7 +148,7 @@ enum class lr {
 };
 
 /*
-The t_convert function is a helper function for the transition_convert function.It takes an integer, an enumeration value of type lr, and an integer representing the total number of tanks, and returns a Transition object.
+The t_convert function is a helper function for the fromTankNumber2Transition function.It takes an integer, an enumeration value of type lr, and an integer representing the total number of tanks, and returns a Transition object.
 It converts the integer from the Schedule into the transition that is to be fired.
 */
 Transition t_convert(int p, lr lr, int out) {
@@ -113,7 +159,7 @@ Transition t_convert(int p, lr lr, int out) {
 	return Tank{ p - 1, lr == lr::left ? IO::INPUT : IO::OUTPUT };
 }
 
-auto transition_convert(tuple<int, int> tup, int out) -> tuple<Transition, Transition> {
+auto fromTankNumber2Transition(tuple<int, int> tup, int out) -> tuple<Transition, Transition> {
 	int left, right;
 	Transition a, b;
 	std::tie(left, right) = tup;
@@ -123,14 +169,14 @@ auto transition_convert(tuple<int, int> tup, int out) -> tuple<Transition, Trans
 	b = t_convert(right, lr::right, out);
 
 	// Return the tuple containing the two variants
-	return std::tie(a, b);
+	return std::make_tuple(a, b);
 }
 
-vector<tuple<Transition, Transition>> vec_transition_convert(vector<tuple<int, int>> inputs) {
+vector<tuple<Transition, Transition>> vec_fromTankNumber2Transition(vector<tuple<int, int>> inputs) {
 	int linputs = inputs.size();
-	vector<tuple<Transition, Transition>> tranconverted;
-	transform(inputs.begin(), inputs.end(), std::back_inserter(tranconverted), std::bind(&transition_convert,std::placeholders::_1, linputs));
-	return tranconverted;
+	vector<tuple<Transition, Transition>> transitionTuples;
+	transform(inputs.begin(), inputs.end(), std::back_inserter(transitionTuples), std::bind(&fromTankNumber2Transition,std::placeholders::_1, linputs));
+	return transitionTuples;
 }
 
 std::ostream& operator<<(std::ostream& os, const std::tuple<int, int>& t)
@@ -149,79 +195,84 @@ auto max_tuple = [](const std::tuple<int, int>& tup) -> int {
 	return std::max(std::get<0>(tup), std::get<1>(tup));
 };
 
+// Helper function to convert a tuple of Transition objects into a tuple of two integers
+tuple<int, int> fromTransition2Index(tuple<Transition, Transition> p, int inpLen) {
+	Transition left, right;
+	std::tie(left, right) = p;
+	int a = getMatrixIndex(right, inpLen);
+	int b = getMatrixIndex(left, inpLen);
+	return std::make_tuple(a, b);
+}
+
+// Helper function to convert a vector of Transition objects into a vector of tuple<int, int> objects
+vector<tuple<int, int>> vec_fromTransition2Index(vector<tuple<Transition, Transition>> inputs) {
+	int inpLen = inputs.size();
+	vector<tuple<int, int>> tranconverted;
+	transform(inputs.begin(), inputs.end(), std::back_inserter(tranconverted), [&inpLen](auto p) {
+		return fromTransition2Index(p, inpLen);
+		});
+	return tranconverted;
+}
+
+
 /*
 //the returned matrix gives us the graph
 where the order of transitions are:
-input (input deposit,output deposit)_i output
-taup is the time of the hoist with a piece
-tau is the time of the hoist without a piece
-l is the time a piece has to be on the tank
+strctInpts.route (strctInpts.route deposit,output deposit)_i output
+strctInpts.transportationTime is the time of the hoist with a piece
+strctInpts.movementTime is the time of the hoist without a piece
+strctInpts.processingTime is the time a piece has to be on the tank
 */
-matrix<series> A_matrix(info_products inputs) {
-	
-	vector<tuple<int,int>> input=inputs.route;
-	vector<int> taup=inputs.transportationTime;
-	vector<int> tau =inputs.movementTime;
-	vector<int> l   =inputs.processingTime;
+matrix<series> A_matrix(info_products strctInpts) {
+	// Check if strctInpts.route sizes match
+	assert(strctInpts.route.size() - 1 == strctInpts.processingTime.size() && "The vector containing the time of pieces in containers doesn't match with the input");
+	assert(strctInpts.route.size() == strctInpts.movementTime.size() && "The length of the vector containing the time of the hoist without a piece must be equal to the length of the input");
 
-    // Check if input sizes match
-    assert(input.size() - 1 == l.size() && "The vector containing the time of pieces in containers doesn't match with the input");
-    assert(input.size() == tau.size() && "The length of the vector containing the time of the hoist without a piece must be equal to the length of the input");
-	
-	// Compute length of input
-	auto transitions = vec_transition_convert(input);
-	int inpLen = input.size();
-
-	//Get max tank
-	std::vector<int> maxvals;
-	std::transform(input.begin(), input.end(), std::back_inserter(maxvals), max_tuple);
-	// Use std::max_element to get the maximum value in the maxVals vector
-	auto maxTank = *std::max_element(maxvals.begin(), maxvals.end());
-	
-	/*The fromTransition2Index variable is a lambda function that takes a Transition object and returns a tuple of two integers. It converts a tuple of Transition objects into a tuple of two integers.
-	*/
-	auto fromTransition2Index = [&inpLen](auto p)->tuple<int, int> {
-		Transition left, right;
-		std::tie(left, right) = p;
-		int a = getMatrixIndex(right, inpLen);
-		int b = getMatrixIndex(left, inpLen);
-		return std::tie(a, b);
-	};
-	auto transitionConverted = ([&fromTransition2Index](auto inputs)->vector<tuple<int, int>> {
-		vector<tuple<int, int>> tranconverted;
-		transform(inputs.begin(), inputs.end(), std::back_inserter(tranconverted), fromTransition2Index);
-		return tranconverted;
-		})(transitions);
-	//int N = T + 1;
-	//Number of transitions
-	int t = 2 * inpLen;
-
-	matrix<series> A(t, t);//A(to,from)
-	//this for loop sets all elements in matrix A related to the movement of the hoist while grabbing a piece
-	 for (int i = 0;i < inpLen;i++) {
-	  	A(get<1>(transitionConverted[(i + 1)%inpLen]),  get<0>(transitionConverted[i])) = gd(0, taup[i]);
+	// Compute length of strctInpts.route
+	auto transitionTuples = vec_fromTankNumber2Transition(strctInpts.route);
+	int inpLen = strctInpts.route.size();
+	// Get max tank
+	int maxTankNumber;
+	{
+		std::vector<int> maxTankValues;
+		std::transform(strctInpts.route.begin(), strctInpts.route.end(), std::back_inserter(maxTankValues), max_tuple);
+		maxTankNumber = *std::max_element(maxTankValues.begin(), maxTankValues.end());
 	}
-	//this loop sets all elements in matrix A related to the movement of the hoist without grabbing a piece, except for the movement from tank x(T+1) to tank x'(T+1) = 0 (input tank), which is set in the following step
-	for (int i = 0;i < inpLen-1;i++) {
-		std::apply(A, transitionConverted[i]) = gd(0, tau[i]);
+	// Convert Transition objects to tuple of ints
+	auto vecIntTransitionConverted = vec_fromTransition2Index(transitionTuples);
+
+	// Initialize matrix mtxA
+	//2 * inpLen is the number of transitions.
+	matrix<series> mtxA(2 * inpLen, 2 * inpLen);
+
+	// Set elements related to the movement of the hoist while grabbing a piece
+	for (int i = 0; i < inpLen; i++) {
+		mtxA(get<1>(vecIntTransitionConverted[(i + 1) % inpLen]), get<0>(vecIntTransitionConverted[i])) = gd(0, strctInpts.transportationTime[i]);
 	}
-	//difference here is that the place has an initial token 
-	std::apply(A, transitionConverted.back()) = gd(1, tau[inpLen-1]);
-	//the following part is for the processing time in the tanks, it is a bit more complicated as we need to put tokens (representing pieces initially in a tank) in the right spot, based only on the schedule
+
+	// Set elements related to the movement of the hoist without grabbing a piece
+	for (int i = 0; i < inpLen - 1; i++) {
+		std::apply(mtxA, vecIntTransitionConverted[i]) = gd(0, strctInpts.movementTime[i]);
+	}
+
+	// Set element related to the movement from the last tank to the first tank
+	std::apply(mtxA, vecIntTransitionConverted.back()) = gd(1, strctInpts.movementTime[inpLen - 1]);
+
+	// Set elements related to the processing times
 	for (int i = 0;i < inpLen - 1;i++) {
-		auto transitio = transition_convert(std::tie(get<1>(input[i]), get<1>(input[i])), maxTank);
-		auto s=fromTransition2Index(transitio);
-		bool flag = !std::any_of(input.begin(), input.begin() + 1 + i, [i, &input](auto pair) { return get<1>(input[i]) == get<0>(pair); });
-		//cout << "flag:" << flag << ";transitio:" << transitio <<";s:" << s <<";A(s):" << std::apply(A, s) << endl;
-		std::apply(A, s) = std::apply(A, s)+gd(flag, l[i]);
+		auto tupTransitionProcess = fromTankNumber2Transition(std::tie(get<1>(strctInpts.route[i]), get<1>(strctInpts.route[i])), maxTankNumber);
+		auto tupIntS=fromTransition2Index(tupTransitionProcess,inpLen);
+		bool flag = !std::any_of(strctInpts.route.begin(), strctInpts.route.begin() + 1 + i, [i, &strctInpts](auto pair) { return get<1>(strctInpts.route[i]) == get<0>(pair); });
+		//cout << "flag:" << flag << ";tupTransitionProcess:" << tupTransitionProcess <<";tupIntS:" << tupIntS <<";mtxA(tupIntS):" << std::apply(mtxA, tupIntS) << endl;
+		std::apply(mtxA, tupIntS) = std::apply(mtxA, tupIntS)+gd(flag, strctInpts.processingTime[i]);
 	}
-	//Note that from matrix A we can construct the TEG, except for input(s) and output(s). In order to find out inputs and outputs we need matrices B and C
-	return A;
+	//Note that from matrix mtxA we can construct the TEG, except for strctInpts.route(tupIntS) and output(tupIntS). In order to find out strctInpts and outputs we need matrices B and C
+	return mtxA;
 }
 
 matrix<series> B_matrix(int T) {
 		
-	//int T = input.size()/2  - 1;
+	//int T = strctInpts.route.size()/2  - 1;
 	int t = 2 * T + 2;
 
 	matrix<series> B(t, 1);
@@ -242,5 +293,5 @@ matrix<series> C_matrix(int T) {
 }
 /*void myfunction(matrix<series> i) {  // function:
 	int idx = &value - &data[0];
-	cout << "A = " << i;
+	cout << "mtxA = " << i;
 }*/
