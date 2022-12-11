@@ -58,8 +58,9 @@ int main() {
 
 
 	vector<matrix<series>> A = A_multi_product(p);
-	//assert((void("no A[0](1,0)"), A[0](1, 0) == gd(0, 2)));
-	//assert((void("no A[0](2,1)"), A[0](2, 1) == gd(0, 31)));
+	assert((void("no A[0](0,9)"), A[0](0, 9) == gd(1, 20)));
+	assert((void("no A[0](1,0)"), A[0](1, 0) == gd(0, 2)));
+	assert((void("no A[0](2,1)"), A[0](2, 1) == gd(0, 31)));
 	//int length = p.route.size() - 1;
 	//matrix<series> B = B_matrix(length);
 	//matrix<series> C = C_matrix(length);

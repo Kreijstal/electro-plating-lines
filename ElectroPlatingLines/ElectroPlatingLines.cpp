@@ -14,6 +14,7 @@ public:
 	IO io;
 };
 
+/*The Transition class is defined as a variant that can either be an IO object or a Tank object. The IO class is an enumeration with two possible values: INPUT and OUTPUT. The Tank class has two public members: an index integer, and an io variable of type IO.*/
 typedef std::variant<IO, Tank> Transition;
 std::ostream& operator<<(std::ostream& os, const IO& io) {
 	// Switch on the IO value and print the corresponding string representation.
@@ -43,7 +44,7 @@ std::ostream& operator<<(std::ostream& os, const Transition& a) {
 	}
 	else if (auto* tank = std::get_if<Tank>(&a)) {
 		// a is a Tank value
-		os << "Tank " << tank->index << " (" << tank->io << ")";
+		os << static_cast<Tank>(*tank);
 	}
 	else {
 		// a is not a valid value
@@ -100,6 +101,10 @@ enum class lr {
 	right
 };
 
+/*
+The t_convert function is a helper function for the transition_convert function.It takes an integer, an enumeration value of type lr, and an integer representing the total number of tanks, and returns a Transition object.
+It converts the integer from the Schedule into the transition that is to be fired.
+*/
 Transition t_convert(int p, lr lr, int out) {
 	if (p == 0)
 		return IO::INPUT;
@@ -139,96 +144,83 @@ std::ostream& operator<<(std::ostream& os, const std::tuple<int, int>& t)
 
 	return os;
 }
+/*This function uses a lambda expression to define an anonymous function that takes a tuple of two integers by reference and returns the maximum value of the two integers. It uses the std::max function to calculate the maximum value, and the std::get function to access the elements of the tuple.*/
+auto max_tuple = [](const std::tuple<int, int>& tup) -> int {
+	return std::max(std::get<0>(tup), std::get<1>(tup));
+};
 
+/*
+//the returned matrix gives us the graph
+where the order of transitions are:
+input (input deposit,output deposit)_i output
+taup is the time of the hoist with a piece
+tau is the time of the hoist without a piece
+l is the time a piece has to be on the tank
+*/
 matrix<series> A_matrix(info_products inputs) {
-	//the returned matrix gives us the graph 
-	//where the order of transitions are:
-	//input (input deposit,output deposit)_i output
+	
 	vector<tuple<int,int>> input=inputs.route;
 	vector<int> taup=inputs.transportationTime;
 	vector<int> tau =inputs.movementTime;
 	vector<int> l   =inputs.processingTime;
-	assert((void("The vector containing the time of pieces in containers doesn't match with the input"), input.size() - 1 == l.size()));
-	assert((void("The length of the vector containing the time of the hoist without a piece must be equal to the length of the input"), input.size() == tau.size()));
-	//taup is the time of the hoist with a piece
-	//tau is the time of the hoist without a piece
-	//l is the time a piece has to be on the tank
-	//input Length
-	auto pinput = vec_transition_convert(input);
+
+    // Check if input sizes match
+    assert(input.size() - 1 == l.size() && "The vector containing the time of pieces in containers doesn't match with the input");
+    assert(input.size() == tau.size() && "The length of the vector containing the time of the hoist without a piece must be equal to the length of the input");
+	
+	// Compute length of input
+	auto transitions = vec_transition_convert(input);
 	int inpLen = input.size();
-	auto finput = [&inpLen](auto p)->tuple<int, int> {
+
+	//Get max tank
+	std::vector<int> maxvals;
+	std::transform(input.begin(), input.end(), std::back_inserter(maxvals), max_tuple);
+	// Use std::max_element to get the maximum value in the maxVals vector
+	auto maxTank = *std::max_element(maxvals.begin(), maxvals.end());
+	
+	/*The fromTransition2Index variable is a lambda function that takes a Transition object and returns a tuple of two integers. It converts a tuple of Transition objects into a tuple of two integers.
+	*/
+	auto fromTransition2Index = [&inpLen](auto p)->tuple<int, int> {
 		Transition left, right;
 		std::tie(left, right) = p;
 		int a = getMatrixIndex(right, inpLen);
 		int b = getMatrixIndex(left, inpLen);
 		return std::tie(a, b);
 	};
-	auto minput = ([&finput](auto inputs)->vector<tuple<int, int>> {
+	auto transitionConverted = ([&fromTransition2Index](auto inputs)->vector<tuple<int, int>> {
 		vector<tuple<int, int>> tranconverted;
-		transform(inputs.begin(), inputs.end(), std::back_inserter(tranconverted), finput);
+		transform(inputs.begin(), inputs.end(), std::back_inserter(tranconverted), fromTransition2Index);
 		return tranconverted;
-		})(pinput);
+		})(transitions);
 	//int N = T + 1;
 	//Number of transitions
 	int t = 2 * inpLen;
 
 	matrix<series> A(t, t);//A(to,from)
 	//this for loop sets all elements in matrix A related to the movement of the hoist while grabbing a piece
-	//for (int i = 0;i < inpLen;i++) {
-		//input->input_1
-		//output_{i-1}->input_i
-		//A(2 * i + 1, 2 * i) = gd(0, taup[i]);
-	//}
 	 for (int i = 0;i < inpLen;i++) {
-		//cout << "ayy (" << get<1>(minput[i + 1]) << "," << get<0>(minput[i]) << ") = (" << 2 * i + 1 << "," << 2 * i << ")" << endl;
-	  	A(get<1>(minput[(i + 1)%inpLen]),  get<0>(minput[i])) = gd(0, taup[i]);
-		// A(2 * i + 1, 2 * i) = gd(0, taup[i]);
+	  	A(get<1>(transitionConverted[(i + 1)%inpLen]),  get<0>(transitionConverted[i])) = gd(0, taup[i]);
 	}
-	 //A(get<1>(minput[0]), get<0>(minput[inpLen - 1])) = gd(0, taup[inpLen - 1]);
-	//cout << inpLen - 1 <<";" << input[inpLen - 1] << ";" << transition_convert(input[inpLen - 1],5)<<';'<< finput(transition_convert(input[inpLen - 1], 5)) << endl;
-	//cout << "ayy (" << get<1>(minput[0]) << "," << get<0>(minput[inpLen - 1]) << ") = (" << 2 *(0)  + 1 << "," << 2 * (0) << ")" << endl;
-	/*A(getMatrixIndex(Tank{0,IO::INPUT}, t), getMatrixIndex(IO::INPUT, t)) = gd(0, taup[0]);
-	for (int i = 1;i < inpLen;i++) {
-		A(getMatrixIndex(Tank{ i,IO::INPUT }, t), getMatrixIndex(Tank{ i-1,IO::OUTPUT }, t)) = gd(0, taup[i]);
-	}*/
 	//this loop sets all elements in matrix A related to the movement of the hoist without grabbing a piece, except for the movement from tank x(T+1) to tank x'(T+1) = 0 (input tank), which is set in the following step
 	for (int i = 0;i < inpLen-1;i++) {
-		//0-> 0.left	
-		//1-> 0.right
-		//2-> 1.left
-		//3-> 1.right
-		//right,left
-		//cout << "(" << 2 * get<1>(input[i]) << "," << 2 * get<0>(input[i]) - 1 << ")=(" <<
-		//	get<1>(minput[i]) <<","<< get<0>(minput[i])<<")" << endl;
-		A(get<0>(minput[i]),get<1>(minput[i])) = gd(0, tau[i]);
+		std::apply(A, transitionConverted[i]) = gd(0, tau[i]);
 	}
 	//difference here is that the place has an initial token 
-	A(get<0>(minput.back()),get<1>(minput.back())) = gd(1, tau[inpLen-1]);
-	
+	std::apply(A, transitionConverted.back()) = gd(1, tau[inpLen-1]);
 	//the following part is for the processing time in the tanks, it is a bit more complicated as we need to put tokens (representing pieces initially in a tank) in the right spot, based only on the schedule
-	for (int i = 0;i < inpLen-1;i++) {
-		//printf("i:%d\n", i);
-		int flag = 0;
-		for (int j = 0;j <= i;j++) {
-			//printf("i:%d j:%d\n", i, j);
-			//printf("%d == %d\n", input[i].right, input[j].left);
-			if (get<1>(input[i]) == get<0>(input[i])) {
-				flag = 1;
-				A(2 * get<1>(input[i]), 2 * get<1>(input[i]) - 1) = gd(0, l[i]);
-			}
-		}
-		//printf("flagtest %d\n", flag);
-		if (flag != 1) {
-			//printf("left: %d right:%d \n", 2 * input[i].right, 2 * input[i].right - 1);
-			A(2 * get<1>(input[i]), 2 * get<1>(input[i]) - 1) = gd(1, l[i]);
-		}
+	for (int i = 0;i < inpLen - 1;i++) {
+		auto transitio = transition_convert(std::tie(get<1>(input[i]), get<1>(input[i])), maxTank);
+		auto s=fromTransition2Index(transitio);
+		bool flag = !std::any_of(input.begin(), input.begin() + 1 + i, [i, &input](auto pair) { return get<1>(input[i]) == get<0>(pair); });
+		//cout << "flag:" << flag << ";transitio:" << transitio <<";s:" << s <<";A(s):" << std::apply(A, s) << endl;
+		std::apply(A, s) = std::apply(A, s)+gd(flag, l[i]);
 	}
 	//Note that from matrix A we can construct the TEG, except for input(s) and output(s). In order to find out inputs and outputs we need matrices B and C
 	return A;
 }
 
 matrix<series> B_matrix(int T) {
-
+		
 	//int T = input.size()/2  - 1;
 	int t = 2 * T + 2;
 
