@@ -38,16 +38,15 @@ int main() {
 	//How can I find A star of a switched linear system, given a schedule
 	vector<info_products> p = {
 		{ { {1,2},{3,3},{4,1},{2,4},{5,0} },//input
-	//{ 2, 3, 5, 7,8 },//taup //transportation
-	{ 5, 7, 3, 8,2 },
-	{ 11, 99, 17, 19, 20 },//tau //movement
+	{ 5, 7, 3, 8,2 },//taup
+	{ 11, 13, 17, 19, 20 },//tau
 	{ 23, 29, 31, 37 } }, //processing
 
-	{ { {1,2},{3,3},{4,1},{2,4},{5,0} },//input
-	{ 2, 3, 5, 7,8 },//taup
-	{ 11, 13, 17, 19, 20 },//tau
-	{ 23, 29, 31, 37 } }
-	,
+		{ { {3,3},{4,1},{2,4},{5,0},{1,2} },//input
+	{ 7, 3, 8,2 ,5},//taup
+	{ 13, 17, 19, 20,11 },//tau
+	{  29, 31, 37, 23 } }, //processing
+
 		{ { {2,2},{1,1},{1,3},{3,0} },//input
 	{ 2, 3, 5, 7 },//taup
 	{ 11, 13, 17, 19 },//tau
