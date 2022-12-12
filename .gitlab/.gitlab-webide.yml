@@ -7,9 +7,6 @@ terminal:
   script: sleep 60
   variables:
     TEST_ENV: "test"
-
-
-
 #image:
 #  name: gitlab/gitlab-ce:latest
 
