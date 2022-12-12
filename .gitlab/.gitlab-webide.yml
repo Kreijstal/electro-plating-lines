@@ -1,0 +1,26 @@
+terminal:
+  # This can be any image that has the necessary runtime environment for your project.
+  #image: node:10-alpine
+  imnage: gitlab/gitlab-ce:latest
+  before_script:
+    - apk update
+  script: sleep 60
+  variables:
+    TEST_ENV: "test"
+
+
+
+#image:
+#  name: gitlab/gitlab-ce:latest
+
+#services:
+#  - name: g++
+#    command: ["g++", "--std=c++20", "--version"]
+
+#stages:
+#  - build
+
+#build:
+#  stage: build
+#  script:
+#    - g++ main.cpp -o main
