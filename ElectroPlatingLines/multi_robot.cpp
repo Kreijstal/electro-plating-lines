@@ -18,9 +18,6 @@ struct robot_arm_2
 };
 // Create an instance of the "robot_arm_1" struct named "arm"
 
-
-
-
 // 18. November 2022 Freitag. EN Gebaeude //
 //switched max plus, define matrices. a for product a, b for product b. once u have them u can combine them. problem is getting the matrices. 
 //robot follows the same route, and products stay there for the same time. 
@@ -47,13 +44,17 @@ struct robot_arm_2
 //   another file where you can aufruf these functions
 // shared files for things we share. w juan 
 int main() {
-    std::cout << "Hello, world!" << std::endl;
+    info_products robotarm1;
     robot_arm_1 arm;
     // Initialize the "robot_1_movement_time" member of "arm" with the specified vector of ints
     arm.robot_1_movement_time = { 1,2,3 };
     arm.robot_1_transport_time = { 4,5,6 };
     arm.robot_1_processing_time = { 7,8,9 };
     arm.robot_1_route = { {0,2},{2,1},{1,3} };
+    robotarm1.route = arm.robot_1_route;
+    robotarm1.processingTime= arm.robot_1_processing_time;
+    robotarm1.transportationTime = arm.robot_1_transport_time;
+    robotarm1.movementTime = arm.robot_1_movement_time;
     
     robot_arm_2 arm2;
     arm2.robot_2_movement_time = { 2, 3, 1, 5 };
@@ -62,3 +63,4 @@ int main() {
     arm2.robot_2_route = { {3,5},{5,4},{4,6} };
     return 0;
 }
+
