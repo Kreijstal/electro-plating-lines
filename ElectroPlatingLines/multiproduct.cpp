@@ -50,11 +50,17 @@ int main() {
 		{ { {2,2},{1,1},{1,3},{3,0} },//input
 	{ 2, 3, 5, 7 },//taup
 	{ 11, 13, 17, 19 },//tau
-	{ 23, 29, 31 } }
-	};//l
+	{ 23, 29, 31 } },
+	{ { {1,0} },//input
+	{ 2},//taup
+	{ 11 },//tau
+	{ } }
+	};
+	//l
 
 
 
+	IID_IUnknown r;
 
 	vector<matrix<series>> A = A_multi_product(p);
 	assert((void("no A[0](0,9)"), A[0](0, 9) == gd(1, 20)));
