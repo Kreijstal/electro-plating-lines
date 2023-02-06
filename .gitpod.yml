@@ -3,7 +3,7 @@ image:
 # List the start up tasks. Learn more: https://www.gitpod.io/docs/configure/workspaces/tasks
 tasks:
   - name: Script Task
-    init: echo 'init script' # runs during prebuild => https://www.gitpod.io/docs/configure/projects/prebuilds
+    init: pushd /workspaces && git clone https://github.com/Kreijstal/Hadamard_product_counters.git && popd # runs during prebuild => https://www.gitpod.io/docs/configure/projects/prebuilds
     command: echo 'start script'
 
 # List the ports to expose. Learn more: https://www.gitpod.io/docs/configure/workspaces/ports
