@@ -15,3 +15,12 @@ $(ETVO_OBJECT):
 all: $(CPP_FILE) $(ETVO_OBJECT)
 	$(CC) $(CFLAGS) $(CPP_FILE) $(ETVO_OBJECT) -o $(PROGRAM)
 
+clean:
+	rm -f $(PROGRAM)
+
+cleanhadamard:
+	@if [ ! -d "../Hadamard_product_counters" ]; then \
+		echo "Warning: Hadamard_product_counters directory not found."; \
+	else \
+		make -C ../Hadamard_product_counters clean; \
+	fi
