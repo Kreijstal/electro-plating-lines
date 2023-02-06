@@ -341,11 +341,11 @@ int main() {
     //std::vector<int> processingTimes = { 10, 20, 30 };
     //Mode mode(1, modeArray, processingTimes, 3);
     //cout << mode.finalContainersTokenCount << endl;
-    //matrix<poly> A(2,2);
-    //A(0, 0) = i2gd(1);
-   // A(0, 1) = i2gd(2);
-   // A(1, 0) = i2gd(3);  
-   // A(1, 1) = i2gd(4);
-    //cout << A << endl;
+    matrix<poly> A(2,2);
+    A(0, 0) = i2gd(1);
+   A(0, 1) = i2gd(2);
+    A(1, 0) = i2gd(3);  
+    A(1, 1) = i2gd(4);
+    cout << A << endl;
 	cout << "hello world" << endl;
 }
