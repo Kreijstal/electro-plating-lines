@@ -106,6 +106,15 @@ namespace std {
  * INPUT and OUTPUT. The TransitionTank class has two public members: an index integer,
  * and an io variable of type IO.*/
 typedef std::variant<IO, TransitionTank> Transition;
+class TransitionMode {
+public:
+    int index;
+    Transition transition;
+};
+
+
+
+
 inline bool operator==(const TransitionTank& lhs, const TransitionTank& rhs)
 {
     return lhs.index == rhs.index && lhs.io == rhs.io;
@@ -163,14 +172,29 @@ std::ostream& operator<<(std::ostream& os, const Transition& a)
     }
     return os;
 }
-std::ostream& operator<<(std::ostream& os,
+std::ostream& operator<<(std::ostream& out, const TransitionMode& mode) {
+    out << "TransitionMode: index=" << mode.index << ", transition=" << mode.transition;
+    return out;
+}
+/*std::ostream& operator<<(std::ostream& os,
     const std::tuple<Transition, Transition>& t)
 {
     os << "(" << std::get<0>(t) << ", " << std::get<1>(t) << ")";
     return os;
+}*/
+template <typename... Args>
+std::ostream& operator<<(std::ostream& os, const std::tuple<Args...>& t)
+{
+    os << "(";
+    std::apply([&os](const auto&... args) {
+        ((os << args << ", "), ...);
+        }, t);
+    os << "\b\b)";
+    return os;
 }
 
-/*template <typename T>
+
+template <typename T>
 std::ostream& operator<<(std::ostream& out,
     const std::vector<T>& vec)
 {
@@ -185,7 +209,19 @@ std::ostream& operator<<(std::ostream& out,
     }
     out << "]" << std::endl;
     return out;
-}*/
+}
+
+template <typename Key, typename Value>
+std::ostream& operator<<(std::ostream& out,
+    const std::unordered_map<Key, Value>& map)
+{
+    out << "Unordered map: {" << std::endl;
+    for (const auto& item : map) {
+        out << "  " << item.first << ": " << item.second << std::endl;
+    }
+    out << "}" << std::endl;
+    return out;
+}
 /*This is the signature for a C++ function named getMatrixIndex that takes two
  * arguments: a std::variant object named t and an int named matrixlength. The
  * std::variant object t can hold either a value of type IO or a value of type
@@ -231,6 +267,16 @@ enum class lr
 	vector<tuple<int, int>> modeArray;
 	vector<int>	procesingTimes;
 } mode;*/
+Transition
+t_convert(int p, lr lr, int out)
+{
+    if (p == 0)
+        return IO::INPUT;
+    if (p == out)
+        return IO::OUTPUT;
+    return TransitionTank{ p - 1, lr == lr::left ? IO::INPUT : IO::OUTPUT };
+}
+#define IS_EVEN(n) ((n) % 2 == 0)
 
 class Mode {
 public:
@@ -250,6 +296,11 @@ public:
             else {
                 bef = std::get<0>(modeArray[index-1]);
             }
+            if (bef > numOfTanks + 1 || aft > numOfTanks + 1) {
+                throw std::invalid_argument("numOfTanks can't be smaller than the actual tanks given on modeArray");
+            }
+            //in,out
+            A0_matrix[std::make_tuple(t_convert(aft, IS_EVEN(index)?lr::left: lr::right, numOfTanks + 1),t_convert(bef, IS_EVEN(index) ? lr::right: lr::left, numOfTanks + 1))] = std::get<1>(modeArray[index]);
             if (bef != 0 && bef != numOfTanks + 1) {
                 finalContainersTokenCount[bef - 1]--;
             }
@@ -290,7 +341,13 @@ public:
         if (modeArray.size() % 2 == 0) {
             throw std::invalid_argument("modeArray must have an uneven length");
         }
-        if (processingTimes.size() * 2 - 1 != modeArray.size()) {
+        int lastCount = 0;
+        for (int i = 0; i < modeArray.size(); i++) {
+            if (std::get<0>(modeArray[i]) == numOfTanks + 1)
+                lastCount++;
+        }
+        cout << (processingTimes.size()+ lastCount) * 2 - 1 <<"="<< modeArray.size() << endl;
+        if ((processingTimes.size() + lastCount) * 2 - 1 != modeArray.size()) {
             throw std::invalid_argument("processingTimes must have a valid length (there is 1/2 as many processing times as transitions)");
         }
     }
@@ -299,16 +356,14 @@ public:
     }
     vector<int> finalContainersTokenCount;
     vector<int> countainerRequirements;
+    std::unordered_map<tuple<Transition, Transition>, int> A0_matrix;
 private:
-    void setA0matrix(){
-
-    }
 
     int numOfTanks;
     int initialTank;
     vector<tuple<int, int>> modeArray;
     vector<int> processingTimes;
-    std::unordered_map<tuple<Transition, Transition>, series> A0_matrix;
+    
 };
 
 
@@ -337,15 +392,17 @@ gd i2gd(int a) {
 }
 
 int main() {
-    //std::vector<std::tuple<int, int>> modeArray = { {1, 2}, {3, 4}, {5, 6} };
-    //std::vector<int> processingTimes = { 10, 20, 30 };
-    //Mode mode(1, modeArray, processingTimes, 3);
-    //cout << mode.finalContainersTokenCount << endl;
+    std::vector<std::tuple<int, int>> modeArray = { {2, 1},{0,2},{1, 3} };
+    std::vector<int> processingTimes = { 10 };
+    Mode mode(1, modeArray, processingTimes, 1);
+    cout << mode.A0_matrix << endl;
+    cout << mode.countainerRequirements << endl;
+    cout << mode.finalContainersTokenCount << endl;
     //matrix<poly> A(2,2);
     //A(0, 0) = i2gd(1);
-   // A(0, 1) = i2gd(2);
-   // A(1, 0) = i2gd(3);  
-   // A(1, 1) = i2gd(4);
+    //A(0, 1) = i2gd(2);
+    //A(1, 0) = i2gd(3);  
+    //A(1, 1) = i2gd(4);
     //cout << A << endl;
 	cout << "hello world" << endl;
 }
