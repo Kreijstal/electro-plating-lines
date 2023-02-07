@@ -438,24 +438,25 @@ public:
 	    vector<int> multiplyWithAstarMatrix(vector<int> transitions,int mode){
 		    //optimization try to figure out the pertaining transitions..
 		    //only makes sense to do square matrix.
+		    if((numOfModes+1)*2==transitions.size){
+			throw std::invalid_argument("number of transitions does not match with Schedule, it should have at least ${(numOfModes+1)*2}");
+		    }
 		    Mode mobj=vMode[mode];
 		    vector<Transition> allValues;
-		    unordered_set<Transition> seen;
-		    vector<tuple<Transition,Transition>> keys;
+		    {
+			    unordered_set<Transition> seen;
+			    for (auto& [key, value] : mobj.A0_matrix) {
+				    if (!seen.count(std::get<0>(key))) {
+					    allValues.push_back(std::get<0>(key));
+					    seen.insert(std::get<0>(key));
+				    }
+				    if (!seen.count(std::get<1>(key))) {
+					    allValues.push_back(std::get<1>(key));
+					    seen.insert(std::get<1>(key));
+				    }
+			    }
+		    }
 
-		    for (auto& [key, value] : mobj.A0_matrix ) {
-			        keys.push_back(key);
-		    }
-		    for (auto& [t1, t2] : keys) {
-			    if (!seen.count(t1)) {
-				    allValues.push_back(t1);
-				    seen.insert(t1);
-			    }
-			    if (!seen.count(t2)) {
-				    allValues.push_back(t2);
-				    seen.insert(t2);
-			    }
-		    }
 
 
 	    }
