@@ -11,6 +11,7 @@
 #include <cinttypes>
 #include <cstddef>
 #include <queue>
+#include <unordered_set>
 using namespace std;  //this imports the standard library, every cout and vector 
 using namespace etvo; //just a library :P every matrix and series. all elements from the library
 // code from https://stackoverflow.com/a/55113454/10000823
@@ -314,17 +315,23 @@ public:
                 if (aft == 0)
                     throw std::invalid_argument("You can't put a piece on the input deposit");
                 if (bef != 0) {
-                    finalContainersTokenCount[bef - 1]--;
+		    finalContainersTokenCount[bef - 1]--;
+		    int popped;
                     if (processingTimesQueue[bef - 1].empty()) {
-                        throw runtime_error("Queue is empty");
-                    }
-                    int popped = processingTimesQueue[bef - 1].front();
-                    processingTimesQueue[bef - 1].pop();
+			//we assume object already exists
+                        //throw runtime_error("Queue is empty");
+			cout << "processing time not found, assuming zero."<<endl;
+			popped=0;
+                    }else {
+                    popped = processingTimesQueue[bef - 1].front();
+			    processingTimesQueue[bef - 1].pop();
+		    }
+			    A0_matrix[std::make_tuple(t_convert(bef, lr::right, numOfTanks + 1),t_convert(bef, lr::left, numOfTanks + 1))] = popped;
                 }
                 if (aft != numOfTanks + 1) {
                     finalContainersTokenCount[aft - 1]++;
                     if (q.empty()) {
-                        throw runtime_error("Queue is empty");
+                        throw runtime_error("q Queue was empty");
                     }
                     processingTimesQueue[aft - 1].push(q.front());
                     q.pop();
@@ -399,78 +406,122 @@ public:
         throw std::invalid_argument("processingTimes must have a valid length (there is 1/2 as many processing times as transitions)");
     int n = getMaxValue(modes);
     numOfModes=n;
-    vMode.resize(modes.size());
-    std::transform(modes.begin(), modes.end(), vMode.begin(), [n](const auto& t) {
-        int initialTank;
-        std::vector<std::tuple<int, int>> modeArray;
-        std::vector<int> processingTimes;
+		std::transform(modes.begin(), modes.end(), std::back_inserter(vMode), [n](const auto& t) {
+		int initialTank;
+		std::vector<std::tuple<int, int>> modeArray;
+		std::vector<int> processingTimes;
 
-        std::tie(initialTank, modeArray, processingTimes) = t;
-        return Mode(initialTank, modeArray, processingTimes, n);
-        });
-    };
+		std::tie(initialTank, modeArray, processingTimes) = t;
+		return Mode(initialTank, modeArray, processingTimes, n);
+		});
+	    };
 
-    // Attributes
-    vector<Mode> vMode;
-    vector<vector<int>> mTransTimes;
-    //vector<matrix<series>> B_matrices;
-    std::unordered_map<tuple<Transition, Transition>, series> A0_matrices;
-    int numOfModes;
-    vector<tuple<int,int>> A1data;
-    //vector<matrix<series>> C_matrices;
-    // Methods
-    //vector<matrix<series>> getAMatrices() { return A_matrices; };
-    //int method2(int x);
-    // 
-    //std::string method3(std::string str);
-private:
-    int getMaxValue(const std::vector<std::tuple<int, std::vector<std::tuple<int, int>>, std::vector<int>>>& vec) {
-        int maxValue = 0;
+	    // Attributes
+	    vector<Mode> vMode;
+	    vector<vector<int>> mTransTimes;
+	    //vector<matrix<series>> B_matrices;
+	    std::unordered_map<tuple<Transition, Transition>, series> A0_matrices;
+	    int numOfModes;
+	    vector<tuple<int,int>> A1data;
+	    //vector<matrix<series>> C_matrices;
+	    // Methods
+	    //vector<matrix<series>> getAMatrices() { return A_matrices; };
+	    //int method2(int x);
+	    // 
+	    //std::string method3(std::string str);
+	    vector<int> initialVector(){
+		    vector<int> a;
+		    a.resize((numOfModes+1)*2);
+		    //initially the initial vector starts with the initial times, so the time is set to -Infinity
+		    std::fill(a.begin(), a.end(), _infinit);
+	    }
+	    vector<int> multiplyWithAstarMatrix(vector<int> transitions,int mode){
+		    //optimization try to figure out the pertaining transitions..
+		    //only makes sense to do square matrix.
+		    Mode mobj=vMode[mode];
+		    vector<Transition> allValues;
+		    unordered_set<Transition> seen;
+		    vector<tuple<Transition,Transition>> keys;
 
-        for (const auto& tuple : vec) {
-            // Get the second element of the tuple, which is a vector<tuple<int, int>>
-            const auto& innerVec = std::get<1>(tuple);
+		    for (auto& [key, value] : mobj.A0_matrix ) {
+			        keys.push_back(key);
+		    }
+		    for (auto& [t1, t2] : keys) {
+			    if (!seen.count(t1)) {
+				    allValues.push_back(t1);
+				    seen.insert(t1);
+			    }
+			    if (!seen.count(t2)) {
+				    allValues.push_back(t2);
+				    seen.insert(t2);
+			    }
+		    }
 
-            // Find the maximum value in the inner vector
-            int maxInnerValue = 0;
-            for (const auto& innerTuple : innerVec) {
-                maxInnerValue = std::max(maxInnerValue, std::get<0>(innerTuple));
-            }
 
-            // Update the maximum value if necessary
-            maxValue = std::max(maxValue, maxInnerValue);
-        }
+	    }
+	private:
+	    template <typename T>
+		    vector<T> readIndexes(vector<int>& L, vector<T>& B) {
+			    vector<T> result;
+			    for (auto index : L) {
+				    result.push_back(B[index]);
+			    }
+			    return result;
+		    }
+	    template <typename T>
+		    void writeIndexes(vector<int>& L, vector<T>& B, vector<T>& values) {
+			    int index = 0;
+			    for (auto& i : L) {
+				    B[i] = values[index++];
+			    }
+		    }
+	    int getMaxValue(const std::vector<std::tuple<int, std::vector<std::tuple<int, int>>, std::vector<int>>>& vec) {
+		    int maxValue = 0;
 
-        return maxValue;
-    }
-    bool isSquare(vector<vector<int>> matrix) {
-        int n = matrix.size();
-        for (int i = 0; i < n; i++) {
-            if (matrix[i].size() != n) {
-                return false;
-            }
-        }
-        return true;
-    }
+		for (const auto& tuple : vec) {
+		    // Get the second element of the tuple, which is a vector<tuple<int, int>>
+		    const auto& innerVec = std::get<1>(tuple);
 
-    //vector<matrix<series>> A_matrices;
-};
-gd i2gd(int a) {
-    return gd(0, a);
-}
+		    // Find the maximum value in the inner vector
+		    int maxInnerValue = 0;
+		    for (const auto& innerTuple : innerVec) {
+			maxInnerValue = std::max(maxInnerValue, std::get<0>(innerTuple));
+		    }
 
-int main() {
-    std::vector<std::tuple<int, int>> modeArray = { {2, 1},{0,2},{1, 3} };
-    std::vector<int> processingTimes = { 10 };
-    Mode mode(1, modeArray, processingTimes, 1);
-    cout << mode.A0_matrix << endl;
-    cout << mode.countainerRequirements << endl;
-    cout << mode.finalContainersTokenCount << endl;
-    //matrix<poly> A(2,2);
-    //A(0, 0) = i2gd(1);
-    //A(0, 1) = i2gd(2);
-    //A(1, 0) = i2gd(3);  
-    //A(1, 1) = i2gd(4);
-    //cout << A << endl;
-	cout << "hello world" << endl;
-}
+		    // Update the maximum value if necessary
+		    maxValue = std::max(maxValue, maxInnerValue);
+		}
+
+		return maxValue;
+	    }
+	    bool isSquare(vector<vector<int>> matrix) {
+		int n = matrix.size();
+		for (int i = 0; i < n; i++) {
+		    if (matrix[i].size() != n) {
+			return false;
+		    }
+		}
+		return true;
+	    }
+
+	    //vector<matrix<series>> A_matrices;
+	};
+	gd i2gd(int a) {
+	    return gd(0, a);
+	}
+
+	int main() {
+	    std::vector<std::tuple<int, int>> modeArray = { {2, 1},{0,2},{1, 3} };
+	    std::vector<int> processingTimes = { 10 };
+	    Mode mode(1, modeArray, processingTimes, 1);
+	    cout << mode.A0_matrix << endl;
+	    cout << mode.countainerRequirements << endl;
+	    cout << mode.finalContainersTokenCount << endl;
+	    //matrix<poly> A(2,2);
+	    //A(0, 0) = i2gd(1);
+	    //A(0, 1) = i2gd(2);
+	    //A(1, 0) = i2gd(3);  
+	    //A(1, 1) = i2gd(4);
+	    //cout << A << endl;
+		cout << "hello world" << endl;
+		}
