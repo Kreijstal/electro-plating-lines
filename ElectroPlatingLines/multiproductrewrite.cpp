@@ -10,6 +10,7 @@
 #include <functional>
 #include <cinttypes>
 #include <cstddef>
+#include <queue>
 using namespace std;  //this imports the standard library, every cout and vector 
 using namespace etvo; //just a library :P every matrix and series. all elements from the library
 // code from https://stackoverflow.com/a/55113454/10000823
@@ -285,6 +286,12 @@ public:
     Mode(int initialTank, vector<tuple<int, int>> modeArray, vector<int> processingTimes, int numberOfTanks) : initialTank(initialTank), modeArray(modeArray), processingTimes(processingTimes), numOfTanks(numberOfTanks){
         countainerRequirements.resize(numOfTanks);
         finalContainersTokenCount.resize(numOfTanks);
+        processingTimesQueue.clear();
+        processingTimesQueue.resize(numberOfTanks);
+        queue<int> q;
+        for (auto& i : processingTimes) {
+            q.push(i);
+        }
         std::fill(countainerRequirements.begin(), countainerRequirements.end(), 0);
         std::fill(finalContainersTokenCount.begin(), finalContainersTokenCount.end(), 0);
         for (int index = 0; index < modeArray.size(); ++index) {
@@ -301,16 +308,31 @@ public:
             }
             //in,out
             A0_matrix[std::make_tuple(t_convert(aft, IS_EVEN(index)?lr::left: lr::right, numOfTanks + 1),t_convert(bef, IS_EVEN(index) ? lr::right: lr::left, numOfTanks + 1))] = std::get<1>(modeArray[index]);
-            if (bef != 0 && bef != numOfTanks + 1) {
-                finalContainersTokenCount[bef - 1]--;
+            if (IS_EVEN(index)) {
+                if (bef == numOfTanks + 1)
+                    throw std::invalid_argument("You can't take a piece from the output deposit");
+                if (aft == 0)
+                    throw std::invalid_argument("You can't put a piece on the input deposit");
+                if (bef != 0) {
+                    finalContainersTokenCount[bef - 1]--;
+                    if (processingTimesQueue[bef - 1].empty()) {
+                        throw runtime_error("Queue is empty");
+                    }
+                    int popped = processingTimesQueue[bef - 1].front();
+                    processingTimesQueue[bef - 1].pop();
+                }
+                if (aft != numOfTanks + 1) {
+                    finalContainersTokenCount[aft - 1]++;
+                    if (q.empty()) {
+                        throw runtime_error("Queue is empty");
+                    }
+                    processingTimesQueue[aft - 1].push(q.front());
+                    q.pop();
+                }
+                for (int i = 0; i < finalContainersTokenCount.size(); i++) {
+                    countainerRequirements[i] = -min(-countainerRequirements[i], finalContainersTokenCount[i]);
+                }
             }
-            if (aft != 0 && aft != numOfTanks + 1) {
-                finalContainersTokenCount[aft - 1]++;
-            }
-            for (int i = 0; i < finalContainersTokenCount.size(); i++) {
-                countainerRequirements[i] = -min(-countainerRequirements[i], finalContainersTokenCount[i]);
-            }
-
         }
 
         validate();
@@ -354,6 +376,7 @@ public:
 
     matrix<series> getA0matrix() {
     }
+    vector<queue<int>> processingTimesQueue;
     vector<int> finalContainersTokenCount;
     vector<int> countainerRequirements;
     std::unordered_map<tuple<Transition, Transition>, int> A0_matrix;
@@ -370,13 +393,29 @@ private:
 class Schedule {
 public:
     // Constructor
-    Schedule(vector<Mode> vMode, matrix<int> mTransTimes) :vMode(vMode), mTransTimes(mTransTimes) {};
+    Schedule(vector<Mode> vMode, vector<vector<int>> mTransTimes) :vMode(vMode), mTransTimes(mTransTimes) {};
+    Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>, std::vector<int>>> modes, vector<vector<int>> mTransTimes) : mTransTimes(mTransTimes) {
+    if(!(isSquare(mTransTimes)&&mTransTimes.size()==modes.size()))
+        throw std::invalid_argument("processingTimes must have a valid length (there is 1/2 as many processing times as transitions)");
+    int n = getMaxValue(modes);
+    numOfModes=n;
+    vMode.resize(modes.size());
+    std::transform(modes.begin(), modes.end(), vMode.begin(), [n](const auto& t) {
+        int initialTank;
+        std::vector<std::tuple<int, int>> modeArray;
+        std::vector<int> processingTimes;
+
+        std::tie(initialTank, modeArray, processingTimes) = t;
+        return Mode(initialTank, modeArray, processingTimes, n);
+        });
+    };
 
     // Attributes
     vector<Mode> vMode;
-    matrix<series> mTransTimes;
+    vector<vector<int>> mTransTimes;
     //vector<matrix<series>> B_matrices;
     std::unordered_map<tuple<Transition, Transition>, series> A0_matrices;
+    int numOfModes;
     vector<tuple<int,int>> A1data;
     //vector<matrix<series>> C_matrices;
     // Methods
@@ -385,6 +424,35 @@ public:
     // 
     //std::string method3(std::string str);
 private:
+    int getMaxValue(const std::vector<std::tuple<int, std::vector<std::tuple<int, int>>, std::vector<int>>>& vec) {
+        int maxValue = 0;
+
+        for (const auto& tuple : vec) {
+            // Get the second element of the tuple, which is a vector<tuple<int, int>>
+            const auto& innerVec = std::get<1>(tuple);
+
+            // Find the maximum value in the inner vector
+            int maxInnerValue = 0;
+            for (const auto& innerTuple : innerVec) {
+                maxInnerValue = std::max(maxInnerValue, std::get<0>(innerTuple));
+            }
+
+            // Update the maximum value if necessary
+            maxValue = std::max(maxValue, maxInnerValue);
+        }
+
+        return maxValue;
+    }
+    bool isSquare(vector<vector<int>> matrix) {
+        int n = matrix.size();
+        for (int i = 0; i < n; i++) {
+            if (matrix[i].size() != n) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     //vector<matrix<series>> A_matrices;
 };
 gd i2gd(int a) {
