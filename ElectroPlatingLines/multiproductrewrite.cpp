@@ -243,7 +243,7 @@ getMatrixIndex(Transition t, int matrixlength)
                 return 0;
                 break;
             case IO::OUTPUT:
-                return 2 * matrixlength - 1;
+                return matrixlength - 1;
                 break;
             }
             //	std::cout << "IO enum class" << std::endl;
@@ -290,8 +290,8 @@ public:
     Mode(int initialTank, vector<tuple<int, int>> modeArray, vector<int> processingTimes, int numberOfTanks) : initialTank(initialTank), modeArray(modeArray), processingTimes(processingTimes), numOfTanks(numberOfTanks){
         countainerRequirements.resize(numOfTanks);
         finalContainersTokenCount.resize(numOfTanks);
-        processingTimesQueue.clear();
-        processingTimesQueue.resize(numberOfTanks);
+        processingTimesQueues.clear();
+        processingTimesQueues.resize(numberOfTanks);
         queue<int> q;
         for (auto& i : processingTimes) {
             q.push(i);
@@ -320,25 +320,26 @@ public:
                 if (bef != 0) {
 		    finalContainersTokenCount[bef - 1]--;
 		    int popped;
-                    if (processingTimesQueue[bef - 1].empty()) {
+                    if (processingTimesQueues[bef - 1].empty()) {
 			//we assume object already exists
                         //throw runtime_error("Queue is empty");
 			cout << "processing time not found, assuming zero."<<endl;
 			popped=0;
                     }else {
-                    popped = processingTimesQueue[bef - 1].front();
-			    processingTimesQueue[bef - 1].pop();
+                    popped = processingTimesQueues[bef - 1].front();
+			    processingTimesQueues[bef - 1].pop();
 		    }
 			    A0_matrix[std::make_tuple(t_convert(bef, lr::right, numOfTanks + 1),t_convert(bef, lr::left, numOfTanks + 1))] = popped;
                 }
                 if (aft != numOfTanks + 1) {
                     finalContainersTokenCount[aft - 1]++;
+                   // cout << "q is gonna pop q:" << q.size() << " processingTimes size:" << processingTimes.size() << " (bef,aft)=("<<bef<<"," << aft<<"); numOfTanks="<< numOfTanks <<endl;
                     if (q.empty()) {
                         throw runtime_error("q Queue was empty");
                     }
-                    cout << "processingTimesQueue size: " << processingTimesQueue.size() << "; aft: " << aft << endl;
-                    processingTimesQueue[aft - 1].push(q.front());
-                    cout << "lol";
+                   // cout << "processingTimesQueues size: " << processingTimesQueues.size() << "; aft: " << aft << endl;
+                    processingTimesQueues[aft - 1].push(q.front());
+                  //  cout << "lol";
                     q.pop();
                 }
                 for (int i = 0; i < finalContainersTokenCount.size(); i++) {
@@ -388,7 +389,7 @@ public:
 
     matrix<series> getA0matrix() {
     }
-    vector<queue<int>> processingTimesQueue;
+    vector<queue<int>> processingTimesQueues;
     vector<int> finalContainersTokenCount;
     vector<int> countainerRequirements;
     std::unordered_map<tuple<Transition, Transition>, int> A0_matrix;
@@ -409,7 +410,7 @@ public:
     Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>, std::vector<int>>> modes, vector<vector<int>> mTransTimes) : mTransTimes(mTransTimes) {
     if(!(isSquare(mTransTimes)&&mTransTimes.size()==modes.size()))
         throw std::invalid_argument("processingTimes must have a valid length (there is 1/2 as many processing times as transitions)");
-    int n = getMaxValue(modes);
+    int n = getMaxValue(modes)-1;
     numOfTanks=n;
 		std::transform(modes.begin(), modes.end(), std::back_inserter(vMode), [n](const auto& t) {
 		int initialTank;
@@ -417,6 +418,7 @@ public:
 		std::vector<int> processingTimes;
 
 		std::tie(initialTank, modeArray, processingTimes) = t;
+        cout << "Mode creation" << endl;
 		return Mode(initialTank, modeArray, processingTimes, n);
 		});
 	    };
@@ -439,13 +441,14 @@ public:
 		    a.resize((numOfTanks+1)*2);
 		    //initially the initial vector starts with the initial times, so the time is set to -Infinity
 		    std::fill(a.begin(), a.end(), _infinit);
+            return a;
 	    }
 	    vector<int> multiplyWithAstarMatrix(vector<int> transitions,int mode){
 		    //optimization try to figure out the pertaining transitions..
 		    //only makes sense to do square matrix.
             int matrixlength = (numOfTanks + 1) * 2;
-		    if(matrixlength ==transitions.size()){
-                std::string errorMessage = "number of transitions does not match with Schedule, it should have at least " + std::to_string(matrixlength)+" transitions.";
+		    if(matrixlength !=transitions.size()){
+                std::string errorMessage = "number of transitions does not match with Schedule, it should have at least " + std::to_string(matrixlength)+" transitions. Transitions vector is instead " + std::to_string(transitions.size())+".";
                 throw std::invalid_argument(errorMessage);
 		    }
 		    Mode mobj=vMode[mode];
@@ -463,6 +466,7 @@ public:
 				    }
 			    }
 		    }
+            cout << "AllValues:" << allValues << endl;
             auto t2i = [allValues](Transition t)->int {
                 auto it = find(allValues.begin(), allValues.end(), t);
                 if (it != allValues.end()) {
@@ -507,6 +511,7 @@ public:
 
 	    template <typename T>
 		    vector<T> readIndexes(vector<int>& L, vector<T>& B) {
+                cout << "readIndexes, indexes:"<< L  << " vector:" << B << endl;
 			    vector<T> result;
 			    for (auto index : L) {
 				    result.push_back(B[index]);
@@ -553,22 +558,31 @@ public:
 	};
 	
 int main() {
-    std::vector<std::tuple<int, int>> modeArray = { {2, 1},{0,2},{1, 3} };
-    std::vector<int> processingTimes = { 10 };
-    Mode mode(1, modeArray, processingTimes, 1);
-    //std::vector<std::tuple<int, std::vector<std::tuple<int, int>>, std::vector<int>>>
-    Schedule a({
-        {1,{ {2, 1},{0,2},{1, 3} },{10}},
-        {0,{ {1, 1},{1,2},{2, 3} },{10}}
-        }, { {1, 2}, {3,4} });
-    cout << mode.A0_matrix << endl;
-    cout << mode.countainerRequirements << endl;
-    cout << mode.finalContainersTokenCount << endl;
-  //matrix<poly> A(2,2);
-   //A(0, 0) = i2gd(1);
-    //A(0, 1) = i2gd(2);
-  //A(1, 0) = i2gd(3);  
-   //A(1, 1) = i2gd(4);
-  //cout << A << endl;
-	cout << "hello world" << endl;
+    try {
+/*        std::vector<std::tuple<int, int>> modeArray = { {2, 1},{0,2},{1, 3} };
+        std::vector<int> processingTimes = { 10 };
+        Mode mode(1, modeArray, processingTimes, 1);
+        cout << mode.A0_matrix << endl;
+        cout << mode.countainerRequirements << endl;
+        cout << mode.finalContainersTokenCount << endl;*/
+        //std::vector<std::tuple<int, std::vector<std::tuple<int, int>>, std::vector<int>>>
+        Schedule a({
+            {1,{ {2, 1},{0,2},{1, 3} },{10}},
+            {0,{ {1, 1},{1,2},{2, 3} },{10}}
+            }, { {1, 2}, {3,4} }
+        );
+        vector<int>x = a.initialVector();
+        a.multiplyWithAstarMatrix(x, 0);
+        //matrix<poly> A(2,2);
+         //A(0, 0) = i2gd(1);
+          //A(0, 1) = i2gd(2);
+        //A(1, 0) = i2gd(3);  
+         //A(1, 1) = i2gd(4);
+        //cout << A << endl;
+        cout << "hello world" << endl;
+    }
+    catch (std::exception& e) {
+        std::cerr << endl<<"An error has been detected in the program, the program will exit now." <<endl<< "error message:" << e.what()<<endl;
+        return 1;
+    }
 }
