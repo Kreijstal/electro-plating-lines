@@ -278,6 +278,9 @@ t_convert(int p, lr lr, int out)
         return IO::OUTPUT;
     return TransitionTank{ p - 1, lr == lr::left ? IO::INPUT : IO::OUTPUT };
 }
+gd i2gd(int a) {
+    return gd(0, a);
+}
 #define IS_EVEN(n) ((n) % 2 == 0)
 
 class Mode {
@@ -333,7 +336,9 @@ public:
                     if (q.empty()) {
                         throw runtime_error("q Queue was empty");
                     }
+                    cout << "processingTimesQueue size: " << processingTimesQueue.size() << "; aft: " << aft << endl;
                     processingTimesQueue[aft - 1].push(q.front());
+                    cout << "lol";
                     q.pop();
                 }
                 for (int i = 0; i < finalContainersTokenCount.size(); i++) {
@@ -405,7 +410,7 @@ public:
     if(!(isSquare(mTransTimes)&&mTransTimes.size()==modes.size()))
         throw std::invalid_argument("processingTimes must have a valid length (there is 1/2 as many processing times as transitions)");
     int n = getMaxValue(modes);
-    numOfModes=n;
+    numOfTanks=n;
 		std::transform(modes.begin(), modes.end(), std::back_inserter(vMode), [n](const auto& t) {
 		int initialTank;
 		std::vector<std::tuple<int, int>> modeArray;
@@ -421,7 +426,7 @@ public:
 	    vector<vector<int>> mTransTimes;
 	    //vector<matrix<series>> B_matrices;
 	    std::unordered_map<tuple<Transition, Transition>, series> A0_matrices;
-	    int numOfModes;
+	    int numOfTanks;
 	    vector<tuple<int,int>> A1data;
 	    //vector<matrix<series>> C_matrices;
 	    // Methods
@@ -431,18 +436,20 @@ public:
 	    //std::string method3(std::string str);
 	    vector<int> initialVector(){
 		    vector<int> a;
-		    a.resize((numOfModes+1)*2);
+		    a.resize((numOfTanks+1)*2);
 		    //initially the initial vector starts with the initial times, so the time is set to -Infinity
 		    std::fill(a.begin(), a.end(), _infinit);
 	    }
 	    vector<int> multiplyWithAstarMatrix(vector<int> transitions,int mode){
 		    //optimization try to figure out the pertaining transitions..
 		    //only makes sense to do square matrix.
-		    if((numOfModes+1)*2==transitions.size){
-			throw std::invalid_argument("number of transitions does not match with Schedule, it should have at least ${(numOfModes+1)*2}");
+            int matrixlength = (numOfTanks + 1) * 2;
+		    if(matrixlength ==transitions.size()){
+                std::string errorMessage = "number of transitions does not match with Schedule, it should have at least " + std::to_string(matrixlength)+" transitions.";
+                throw std::invalid_argument(errorMessage);
 		    }
 		    Mode mobj=vMode[mode];
-		    vector<Transition> allValues;
+		    vector<Transition> allValues;//list of used transitions
 		    {
 			    unordered_set<Transition> seen;
 			    for (auto& [key, value] : mobj.A0_matrix) {
@@ -456,11 +463,48 @@ public:
 				    }
 			    }
 		    }
+            auto t2i = [allValues](Transition t)->int {
+                auto it = find(allValues.begin(), allValues.end(), t);
+                if (it != allValues.end()) {
+                    return distance(allValues.begin(), it);
+                }
+            };
+            cout << etvoAMatrix(allValues, mobj.A0_matrix) << endl;
+
+            vector<int> allIndex;//list of matrix indices of all used transitions
+            std::transform(allValues.begin(), allValues.end(), std::back_inserter(allIndex), [matrixlength](const auto& t) {
+                return getMatrixIndex(t, matrixlength);
+                });
+            vector<int> vNTransitions=readIndexes(allIndex, transitions);
+        }
+            
 
 
 
-	    }
+	    
 	private:
+        matrix<series> etvoAMatrix(vector<Transition> indexT, unordered_map<tuple<Transition, Transition>,int>  Amap) {
+            auto t2i = [indexT](Transition t)->int {
+                auto it = find(indexT.begin(), indexT.end(), t);
+                if (it != indexT.end()) {
+                    return distance(indexT.begin(), it);
+                }
+            };
+            matrix<series> A(indexT.size(), indexT.size());
+            for (auto& [key, value] : Amap) {
+                A(t2i(std::get<0>(key)), t2i(std::get<1>(key))) = i2gd(value);
+            }
+            return A;
+        
+        }
+        matrix<series> intVector2MaxPlus(vector<int> i) {
+            matrix<series> out(1, i.size());
+            for (int index = 0; index < i.size(); ++index) {
+                out(1, index) = i2gd(i[index]);
+            }
+            return out;
+        }
+
 	    template <typename T>
 		    vector<T> readIndexes(vector<int>& L, vector<T>& B) {
 			    vector<T> result;
@@ -507,22 +551,24 @@ public:
 
 	    //vector<matrix<series>> A_matrices;
 	};
-	gd i2gd(int a) {
-	    return gd(0, a);
-	}
-
-	int main() {
-	    std::vector<std::tuple<int, int>> modeArray = { {2, 1},{0,2},{1, 3} };
-	    std::vector<int> processingTimes = { 10 };
-	    Mode mode(1, modeArray, processingTimes, 1);
-	    cout << mode.A0_matrix << endl;
-	    cout << mode.countainerRequirements << endl;
-	    cout << mode.finalContainersTokenCount << endl;
-	    //matrix<poly> A(2,2);
-	    //A(0, 0) = i2gd(1);
-	    //A(0, 1) = i2gd(2);
-	    //A(1, 0) = i2gd(3);  
-	    //A(1, 1) = i2gd(4);
-	    //cout << A << endl;
-		cout << "hello world" << endl;
-		}
+	
+int main() {
+    std::vector<std::tuple<int, int>> modeArray = { {2, 1},{0,2},{1, 3} };
+    std::vector<int> processingTimes = { 10 };
+    Mode mode(1, modeArray, processingTimes, 1);
+    //std::vector<std::tuple<int, std::vector<std::tuple<int, int>>, std::vector<int>>>
+    Schedule a({
+        {1,{ {2, 1},{0,2},{1, 3} },{10}},
+        {0,{ {1, 1},{1,2},{2, 3} },{10}}
+        }, { {1, 2}, {3,4} });
+    cout << mode.A0_matrix << endl;
+    cout << mode.countainerRequirements << endl;
+    cout << mode.finalContainersTokenCount << endl;
+  //matrix<poly> A(2,2);
+   //A(0, 0) = i2gd(1);
+    //A(0, 1) = i2gd(2);
+  //A(1, 0) = i2gd(3);  
+   //A(1, 1) = i2gd(4);
+  //cout << A << endl;
+	cout << "hello world" << endl;
+}
