@@ -26,5 +26,8 @@
     <ClInclude Include="..\..\Hadamard_product_counters\etvo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ElectroPlatingLines.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
