@@ -266,6 +266,7 @@ t_convert(int p, lr lr, int out)
         return IO::OUTPUT;
     return TransitionTank{ p - 1, lr == lr::left ? IO::INPUT : IO::OUTPUT };
 }
+
 gd i2gd(int a)
 {
     return gd(0, a);
@@ -276,6 +277,8 @@ class Mode {
 public:
     // Constructor
     //let initialTank=0 be input tank and initialTank=numberOfTanks+1 the output Tank
+    //A modeArray is a vector of tuples where the first element is the Tank as a number, where 0 is the input tank and numberOfTanks+1 is the output tank.
+    //And the second element is either the transportation or movement time.
     Mode(int initialTank, vector<tuple<int, int> > modeArray, vector<int> processingTimes, int numberOfTanks)
         : initialTank(initialTank)
         , modeArray(modeArray)
@@ -286,64 +289,10 @@ public:
         finalContainersTokenCount.resize(numOfTanks);
         processingTimesQueues.clear();
         processingTimesQueues.resize(numberOfTanks);
-        queue<int> q;
-        for (auto& i : processingTimes) {
-            q.push(i);
-        }
+        
         std::fill(countainerRequirements.begin(), countainerRequirements.end(), 0);
         std::fill(finalContainersTokenCount.begin(), finalContainersTokenCount.end(), 0);
-        for (int index = 0; index < modeArray.size(); ++index) {
-            int bef;
-            int aft = std::get<0>(modeArray[index]);
-            if (index == 0) {
-                bef = initialTank;
-            }
-            else {
-                bef = std::get<0>(modeArray[index - 1]);
-            }
-            if (bef > numOfTanks + 1 || aft > numOfTanks + 1) {
-                throw std::invalid_argument("numOfTanks can't be smaller than the actual tanks given on modeArray");
-            }
-            //in,out
-            A0_matrix[std::make_tuple(t_convert(aft, IS_EVEN(index) ? lr::left : lr::right, numOfTanks + 1), t_convert(bef, IS_EVEN(index) ? lr::right : lr::left, numOfTanks + 1))] = std::get<1>(modeArray[index]);
-            if (IS_EVEN(index)) {
-                if (bef == numOfTanks + 1)
-                    throw std::invalid_argument("You can't take a piece from the output deposit");
-                if (aft == 0)
-                    throw std::invalid_argument("You can't put a piece on the input deposit");
-                if (bef != 0) {
-                    finalContainersTokenCount[bef - 1]--;
-                    int popped;
-                    if (processingTimesQueues[bef - 1].empty()) {
-                        //we assume object already exists
-                        //throw runtime_error("Queue is empty");
-                        cout << "processing time not found." << endl;
-                        //popped = 0;
-                    }
-                    else {
-                        popped = processingTimesQueues[bef - 1].front();
-                        processingTimesQueues[bef - 1].pop();
-                        A0_matrix[std::make_tuple(t_convert(bef, lr::right, numOfTanks + 1), t_convert(bef, lr::left, numOfTanks + 1))] = popped;
-                    }
-                    
-                }
-                if (aft != numOfTanks + 1) {
-                    finalContainersTokenCount[aft - 1]++;
-                    // cout << "q is gonna pop q:" << q.size() << " processingTimes size:" << processingTimes.size() << " (bef,aft)=("<<bef<<"," << aft<<"); numOfTanks="<< numOfTanks <<endl;
-                    if (q.empty()) {
-                        throw runtime_error("q Queue was empty");
-                    }
-                    // cout << "processingTimesQueues size: " << processingTimesQueues.size() << "; aft: " << aft << endl;
-                    processingTimesQueues[aft - 1].push(q.front());
-                    //  cout << "lol";
-                    q.pop();
-                }
-                for (int i = 0; i < finalContainersTokenCount.size(); i++) {
-                    countainerRequirements[i] = -min(-countainerRequirements[i], finalContainersTokenCount[i]);
-                }
-            }
-        }
-
+        loopOverTupleWithTanksAndTimes();
         validate();
     }
 
@@ -394,6 +343,63 @@ public:
     std::unordered_map<tuple<Transition, Transition>, int> A0_matrix;
 
 private:
+    void loopOverTupleWithTanksAndTimes() {
+        queue<int> q;
+        for (auto& i : processingTimes) {
+            q.push(i);
+        }
+        for (int index = 0; index < modeArray.size(); ++index) {
+            int previousTank;
+            int currentTank = std::get<0>(modeArray[index]);
+            if (index == 0) {
+                previousTank = initialTank;
+            }
+            else {
+                previousTank = std::get<0>(modeArray[index - 1]);
+            }
+            if (previousTank > numOfTanks + 1 || currentTank > numOfTanks + 1) {
+                throw std::invalid_argument("numOfTanks can't be smaller than the actual tanks given on modeArray");
+            }
+            //in,out
+            A0_matrix[std::make_tuple(t_convert(currentTank, IS_EVEN(index) ? lr::left : lr::right, numOfTanks + 1), t_convert(previousTank, IS_EVEN(index) ? lr::right : lr::left, numOfTanks + 1))] = std::get<1>(modeArray[index]);
+            if (IS_EVEN(index)) {
+                if (previousTank == numOfTanks + 1)
+                    throw std::invalid_argument("You can't take a piece from the output deposit");
+                if (currentTank == 0)
+                    throw std::invalid_argument("You can't put a piece on the input deposit");
+                if (previousTank != 0) {
+                    finalContainersTokenCount[previousTank - 1]--;
+                    int popped;
+                    if (processingTimesQueues[previousTank - 1].empty()) {
+                        //we assume object already exists
+                        //throw runtime_error("Queue is empty");
+                        cout << "processing time not found." << endl;
+                        //popped = 0;
+                    }
+                    else {
+                        popped = processingTimesQueues[previousTank - 1].front();
+                        processingTimesQueues[previousTank - 1].pop();
+                        A0_matrix[std::make_tuple(t_convert(previousTank, lr::right, numOfTanks + 1), t_convert(previousTank, lr::left, numOfTanks + 1))] = popped;
+                    }
+
+                }
+                if (currentTank != numOfTanks + 1) {
+                    finalContainersTokenCount[currentTank - 1]++;
+                    // cout << "q is gonna pop q:" << q.size() << " processingTimes size:" << processingTimes.size() << " (previousTank,currentTank)=("<<previousTank<<"," << currentTank<<"); numOfTanks="<< numOfTanks <<endl;
+                    if (q.empty()) {
+                        throw runtime_error("q Queue was empty");
+                    }
+                    // cout << "processingTimesQueues size: " << processingTimesQueues.size() << "; currentTank: " << currentTank << endl;
+                    processingTimesQueues[currentTank - 1].push(q.front());
+                    //  cout << "lol";
+                    q.pop();
+                }
+                for (int i = 0; i < finalContainersTokenCount.size(); i++) {
+                    countainerRequirements[i] = -min(-countainerRequirements[i], finalContainersTokenCount[i]);
+                }
+            }
+        }
+    }
     int numOfTanks;
     int initialTank;
     vector<tuple<int, int> > modeArray;
@@ -406,6 +412,7 @@ public:
     /*Schedule(vector<Mode> vMode, vector<vector<int> > mTransTimes)
         : vMode(vMode)
         , mTransTimes(mTransTimes) {};*/
+    /*the mTransTimes is the matrix that represents the switching times between the modes.*/
     Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int> >, std::vector<int> > > modes, vector<vector<int> > mTransTimes)
         : mTransTimes(mTransTimes)
     {
@@ -595,9 +602,12 @@ int main()
               cout << mode.countainerRequirements << endl;
               cout << mode.finalContainersTokenCount << endl;*/
               //std::vector<std::tuple<int, std::vector<std::tuple<int, int>>, std::vector<int>>>
-        Schedule a({{1, {{2, 1}, {0, 2}, {1, 3}}, {10}},
-                       { 0, { { 1, 1 }, { 1, 2 }, { 2, 3 } }, { 10 } } },
-            { { 1, 2 }, { 3, 4 } });
+        Schedule a({
+            {1, { { 2, 1 }, { 0, 2 }, { 1, 3 } }, { 10 } },
+            {0, { { 1, 1 }, { 1, 2 }, { 2, 3 } }, { 10 } } 
+            },
+            { { 1, 2 },
+              { 3, 4 } });
         vector<int> x = a.initialVector();
         cout<<a.multiplyWithAstarMatrix(a.addB(x,1), 1)<<endl;
         //matrix<poly> A(2,2);
@@ -607,6 +617,7 @@ int main()
         //A(1, 1) = i2gd(4);
         //cout << A << endl;
         cout << "hello world" << endl;
+        
     }
     catch (std::exception& e) {
         std::cerr << endl
