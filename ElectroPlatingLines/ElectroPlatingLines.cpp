@@ -5,11 +5,13 @@
 #include <cinttypes>
 #include <cstddef>
 
+
+
 // code from https://stackoverflow.com/a/55113454/10000823
 namespace std {
     namespace {
 
-        // Code from boost
+        // Code from boost 
         // Reciprocal of the golden ratio helps spread entropy
         //     and handles duplicates.
         // See Mike Seymour in magic-numbers-in-boosthash-combine:
@@ -79,7 +81,7 @@ namespace std {
 class Tank
 {
 public:
-    int index;
+    int index; //faengt von 0 an, gibt die nummer von dem tank
     IO io;
 };
 
@@ -98,6 +100,7 @@ namespace std {
  * or a Tank object. The IO class is an enumeration with two possible values:
  * INPUT and OUTPUT. The Tank class has two public members: an index integer,
  * and an io variable of type IO.*/
+
 typedef std::variant<IO, Tank> Transition;
 inline bool operator==(const Tank& lhs, const Tank& rhs)
 {

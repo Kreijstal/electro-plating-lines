@@ -38,11 +38,11 @@ struct robot_arm_2
 // input is info_robot1.route and info_robot2.route
 // B, C are the same? in which cases are they not? assume they are the same
 // possibily of having them different. more input deposits then output deposit, which by us is not the case
-// seperate input that takes care of the shared place
+// seperate input that takes care of the shared place?
 // one robot has the input of the shared tank and the other does not
 // another possibility>
 //   another file where you can aufruf these functions
-// shared files for things we share. w juan 
+//   shared files for things we share. w juan 
 int main() {
     info_products robotarm1;
     robot_arm_1 arm;
@@ -56,11 +56,17 @@ int main() {
     robotarm1.transportationTime = arm.robot_1_transport_time;
     robotarm1.movementTime = arm.robot_1_movement_time;
     
+
+    info_products robotarm2;
     robot_arm_2 arm2;
     arm2.robot_2_movement_time = { 2, 3, 1, 5 };
     arm2.robot_2_transport_time = { 1, 2, 3, 4 };
     arm2.robot_2_processing_time = { 5, 4, 3, 2 };
     arm2.robot_2_route = { {3,5},{5,4},{4,6} };
+    robotarm2.route = arm2.robot_1_route;
+    robotarm2.processingTime = arm2.robot_1_processing_time;
+    robotarm2.transportationTime = arm2.robot_1_transport_time;
+    robotarm2.movementTime = arm2.robot_1_movement_time;
     return 0;
 }
 
