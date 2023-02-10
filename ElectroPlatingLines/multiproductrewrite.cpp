@@ -287,8 +287,7 @@ public:
     {
         countainerRequirements.resize(numOfTanks);
         finalContainersTokenCount.resize(numOfTanks);
-        processingTimesQueues.clear();
-        processingTimesQueues.resize(numberOfTanks);
+        
         
         std::fill(countainerRequirements.begin(), countainerRequirements.end(), 0);
         std::fill(finalContainersTokenCount.begin(), finalContainersTokenCount.end(), 0);
@@ -344,6 +343,8 @@ public:
 
 private:
     void loopOverTupleWithTanksAndTimes() {
+        processingTimesQueues.clear();
+        processingTimesQueues.resize(numberOfTanks);
         queue<int> q;
         for (auto& i : processingTimes) {
             q.push(i);
@@ -362,7 +363,7 @@ private:
             }
             //in,out
             A0_matrix[std::make_tuple(t_convert(currentTank, IS_EVEN(index) ? lr::left : lr::right, numOfTanks + 1), t_convert(previousTank, IS_EVEN(index) ? lr::right : lr::left, numOfTanks + 1))] = std::get<1>(modeArray[index]);
-            if (IS_EVEN(index)) {
+            if (IS_EVEN(index)) {//if even it is transportation, if odd it is movement
                 if (previousTank == numOfTanks + 1)
                     throw std::invalid_argument("You can't take a piece from the output deposit");
                 if (currentTank == 0)
@@ -458,7 +459,13 @@ public:
         in[i] = max(in[i],0);
         return in;
     }
-    
+
+    vector<int> multiplyWithA1(vector<int> transitions, int prevMode, int currMode){
+        //Here we need to take queues that are not empty!
+        
+        
+    } 
+
     vector<int> multiplyWithAstarMatrix(vector<int> transitions, int mode)
     {
         //optimization try to figure out the pertaining transitions..
