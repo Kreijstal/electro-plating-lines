@@ -340,11 +340,11 @@ public:
     vector<int> finalContainersTokenCount;
     vector<int> countainerRequirements;
     std::unordered_map<tuple<Transition, Transition>, int> A0_matrix;
-
+    int lastTank;
 private:
     void loopOverTupleWithTanksAndTimes() {
         processingTimesQueues.clear();
-        processingTimesQueues.resize(numberOfTanks);
+        processingTimesQueues.resize(numOfTanks);
         queue<int> q;
         for (auto& i : processingTimes) {
             q.push(i);
@@ -352,6 +352,9 @@ private:
         for (int index = 0; index < modeArray.size(); ++index) {
             int previousTank;
             int currentTank = std::get<0>(modeArray[index]);
+            if (index == modeArray.size() - 1) {
+                lastTank = currentTank;
+            }
             if (index == 0) {
                 previousTank = initialTank;
             }
@@ -403,6 +406,7 @@ private:
     }
     int numOfTanks;
     int initialTank;
+    
     vector<tuple<int, int> > modeArray;
     vector<int> processingTimes;
 };
@@ -462,6 +466,16 @@ public:
 
     vector<int> multiplyWithA1(vector<int> transitions, int prevMode, int currMode){
         //Here we need to take queues that are not empty!
+        //define the a1 matrix;
+        std::unordered_map<tuple<Transition, Transition>, series> A1_matrix;
+        //in order to create A1 we need to take care of three cases
+        //case 1 when going from last tank in previous mode to first tank in current mode
+        A1_matrix[std::make_tuple(t_convert(vMode[currMode].getInitialTank(), lr::right, numOfTanks + 1),
+            t_convert(vMode[prevMode].lastTank, lr::left, numOfTanks + 1))]=i2gd(mTransTimes[currMode][prevMode]);
+        //case 2 passing pieces that are "leftovers"
+        // 
+        //case 3 pass through
+
         
         
     } 
