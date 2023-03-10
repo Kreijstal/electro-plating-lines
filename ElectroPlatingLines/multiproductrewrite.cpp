@@ -393,7 +393,7 @@ public:
     void validate()
     {
         if (modeArray.size() % 2 == 0) {
-            throw std::invalid_argument("modeArray must have an uneven length");
+            throw std::invalid_argument("modeArray must have an odd length");
         }
         int lastCount = 0;
         for (int i = 0; i < modeArray.size(); i++) {
@@ -433,7 +433,7 @@ private:
                 previousTank = std::get<0>(modeArray[index - 1]);
             }
             if (previousTank > numOfTanks + 1 || currentTank > numOfTanks + 1) {
-                throw std::invalid_argument("numOfTanks can't be smaller than the actual tanks given on modeArray");
+                throw std::invalid_argument("numOfTanks must be greater than the actual tanks given on modeArray");
             }
             //in,out
             A0_matrix[std::make_tuple(t_convert(currentTank, IS_EVEN(index) ? lr::left : lr::right, numOfTanks + 1), t_convert(previousTank, IS_EVEN(index) ? lr::right : lr::left, numOfTanks + 1))] = std::get<1>(modeArray[index]);
@@ -845,7 +845,7 @@ private:
 
         return maxValue;
     }
-    bool isSquare(vector<vector<int> > matrix)
+    bool isSquare(vector<vector<int>> &matrix)
     {
         int n = matrix.size();
         for (int i = 0; i < n; i++) {
@@ -858,16 +858,27 @@ private:
 
     //vector<matrix<series>> A_matrices;
 };
-matrix<series> getXfromMatrix(matrix<series> ms) {
+matrix<series> getXfromMatrix(matrix<series>& ms) {
     int size = ms.GetRow();
     matrix<series> out(size,1);
     //out(0, 0) = i2gd(0);
     return out;
 }
-void printSize(matrix<series> a) {
+void printSize(matrix<series>& a) {
     std::cout <<"("<<a.GetRow()<<","<<a.GetColumn()<<")" << std::endl;
-
 }
+
+void printMatrix(matrix<series>& a) {
+    for (unsigned int i = 0;i < a.GetRow();i++) {
+        for (unsigned int j = 0;j < a.GetColumn();j++) {
+            series& t = a(i, j);
+            std::cout << "[" << i << "," << j << "] = P:" << t.getP() << ",Q:" << t.getQ() << ",R:" << t.getR() << std::endl;
+
+            //std::cout << "(" << a.GetRow() << "," << a.GetColumn() << ")" << std::endl;
+        }
+    }
+}
+
 int main()
 {
     try {
@@ -881,7 +892,7 @@ int main()
         //cout << "TEST" << endl;
         matrix<series> A, B;
         std::tie(A, B) =a.getBigAandBMatrix({0,0});
-        matrix<series> Asimilar(8, 8);
+        /*matrix<series> Asimilar(8, 8);
         Asimilar(0, 3) = gd(0,2);
         Asimilar(0, 4) = gd(1, 0);
         Asimilar(1, 0) = gd(0, 3);
@@ -893,27 +904,33 @@ int main()
         Asimilar(4, 0) = gd(0, 0);
         Asimilar(4, 5) = gd(1, 10);
         Asimilar(4, 6)= gd(1, 0);
+        Asimilar(4, 7) = gd(0, 2);
         Asimilar(5, 1) = gd(0, 0);
-        Asimilar(5, 4)=gd(0, 3);
+        /*Asimilar(5, 4)=gd(0, 3);
         Asimilar(6, 1)=gd(0, 10);
         Asimilar(6, 2)=gd(0, 0);
         Asimilar(7, 3)=gd(0, 0);
         Asimilar(7, 6)=gd(0, 1);
-        
+        */
         //cout << "TEST" << endl;
-        matrix<series> x=getXfromMatrix(A);
-        cout << "Printing A:" << endl<<A << endl;
-        cout << "printing Asimilar:" <<endl<< Asimilar << endl;
-        cout << "Is a equal to Asimilar?";
-        cout << (A ==Asimilar?"true":"false") << endl;
+        //matrix<series> x = getXfromMatrix(A);
+        /*series p = gd(5, 4);
+        auto d = p.star();
+        cout <<"printing p:"<<p<<", and p*:"<<d<< endl;
+        cout << d.getP() << endl;
+        cout << d.getQ() << endl;
+        cout << d.getR() << endl;
+        d.canon();
+        cout << d << endl;*/
         //cout << series(gd(1, 2))+ series(gd(2, 10)) << endl;
-        auto c = A.star();
+        //auto c = A.star();
         //c(0, 5).canon();
-        cout << "now this is A*:" << endl << c << "END" << endl;
-        cout << "and this is Asimilar*:"<<endl << Asimilar.star() << endl;
+        cout << "now this is A:" << endl << A << "END" << endl;
+        
+        //cout << "and this is Asimilar^8:"<<endl << Asimilarold << endl;
         //printSize(x);
         //printSize(B * intVector2MaxPlus({ 0,0 }));
-        //cout<<A.star()* (x + B * intVector2MaxPlus({ 0,0 }))<<endl;
+        cout<<A.star()* (B * intVector2MaxPlus({ 0,0 }))<<endl;
         /*vector<int> x = a.initialVector();
         x = a.multiplyWithAstarMatrix(a.addB(x, 1), 0);
 //        cout << a.vMode[0].processingTimesQueues << endl;
