@@ -21,12 +21,18 @@
     <ClCompile Include="multiproductrewrite.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="multi_product_lib.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Hadamard_product_counters\etvo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ElectroPlatingLines.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="multi_product_lib.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

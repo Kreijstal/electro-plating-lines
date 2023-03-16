@@ -158,10 +158,12 @@
   <ItemGroup>
     <ClCompile Include="..\..\Hadamard_product_counters\etvo.cpp" />
     <ClCompile Include="multiproductrewrite.cpp" />
+    <ClCompile Include="multi_product_lib.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Hadamard_product_counters\etvo.h" />
     <ClInclude Include="ElectroPlatingLines.h" />
+    <ClInclude Include="multi_product_lib.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
