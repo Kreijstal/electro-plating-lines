@@ -5,9 +5,10 @@
 #include <unordered_set>
 #include <variant>
 #include <unordered_map>
+#include "tuple_hash.h"
 using namespace std; //this imports the standard library, every cout and vector
 using namespace etvo; //just a library :P every matrix and series. all elements from the library
-// code from https://stackoverflow.com/a/55113454/10000823
+
 enum class IO {
     INPUT,
     OUTPUT
@@ -17,6 +18,32 @@ public:
     int index;
     IO io;
 };
+namespace std {
+    template <>
+    struct hash<IO> {
+        size_t operator()(const IO& io) const
+        {
+            if (io == IO::INPUT) {
+                return std::hash<int>()(0);
+            }
+            else {
+                return std::hash<int>()(1);
+            }
+        }
+    };
+}
+
+
+namespace std {
+    template <>
+    struct hash<TransitionTank> {
+        size_t operator()(const TransitionTank& tank) const
+        {
+            return (std::hash<int>()(tank.index) << 1) & std::hash<IO>()(tank.io);
+        }
+    };
+}
+
 /*The Transition class is defined as a variant that can either be an IO object
  * or a TransitionTank object. The IO class is an enumeration with two possible values:
  * INPUT and OUTPUT. The TransitionTank class has two public members: an index integer,

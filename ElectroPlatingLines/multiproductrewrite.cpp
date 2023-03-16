@@ -6,7 +6,7 @@ int main()
 {
     try {
     
-      /*  Schedule a({
+        Schedule a({
             {1, { { 2, 1 }, { 0, 2 }, { 1, 3 } }, { 10 } },
             {0, { { 1, 1 }, { 1, 2 }, { 2, 3 } }, { 10 } } 
             },
@@ -79,7 +79,7 @@ int main()
         //A(0, 1) = i2gd(2);
         //A(1, 0) = i2gd(3);
         //A(1, 1) = i2gd(4);
-        //cout << A << endl;*/
+        //cout << A << endl;
         cout << "hello world" << endl;
         
     }

@@ -12,79 +12,6 @@
 using namespace std; //this imports the standard library, every cout and vector
 using namespace etvo; //just a library :P every matrix and series. all elements from the library
 // code from https://stackoverflow.com/a/55113454/10000823
-namespace std {
-    namespace {
-
-        // Code from boost
-        // Reciprocal of the golden ratio helps spread entropy
-        //     and handles duplicates.
-        // See Mike Seymour in magic-numbers-in-boosthash-combine:
-        //     http://stackoverflow.com/questions/4948780
-
-        template <class T>
-        inline void
-            hash_combine(std::size_t& seed, T const& v)
-        {
-            seed ^= std::hash<T>()(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        }
-
-        // Recursive template code derived from Matthieu M.
-        template <class Tuple, size_t Index = std::tuple_size<Tuple>::value - 1>
-        struct HashValueImpl {
-            static void apply(size_t& seed, Tuple const& tuple)
-            {
-                HashValueImpl<Tuple, Index - 1>::apply(seed, tuple);
-                hash_combine(seed, std::get<Index>(tuple));
-            }
-        };
-
-        template <class Tuple>
-        struct HashValueImpl<Tuple, 0> {
-            static void apply(size_t& seed, Tuple const& tuple)
-            {
-                hash_combine(seed, std::get<0>(tuple));
-            }
-        };
-    }
-
-    template <typename... TT>
-    struct hash<std::tuple<TT...> > {
-        size_t operator()(std::tuple<TT...> const& tt) const
-        {
-            size_t seed = 0;
-            HashValueImpl<std::tuple<TT...> >::apply(seed, tt);
-            return seed;
-        }
-    };
-}
-
-
-namespace std {
-    template <>
-    struct hash<IO> {
-        size_t operator()(const IO& io) const
-        {
-            if (io == IO::INPUT) {
-                return std::hash<int>()(0);
-            }
-            else {
-                return std::hash<int>()(1);
-            }
-        }
-    };
-}   
-
-
-namespace std {
-    template <>
-    struct hash<TransitionTank> {
-        size_t operator()(const TransitionTank& tank) const
-        {
-            return (std::hash<int>()(tank.index) << 1) & std::hash<IO>()(tank.io);
-        }
-    };
-}
-
 
 
 inline bool operator==(const TransitionTank& lhs, const TransitionTank& rhs)
@@ -319,7 +246,7 @@ std::vector<T> create_vector(T element, int length) {
     std::fill(vec.begin(), vec.end(), element);
     return vec;
 }
-/*
+
 
     // Constructor
     //let initialTank=0 be input tank and initialTank=numberOfTanks+1 the output Tank
@@ -724,7 +651,7 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
         writeIndexes<int>(allIndex, transitions, mV2iV(A * intVector2MaxPlus(vNTransitions)));
         return transitions;
     }
-    */
+    
     matrix<series> Schedule::etvoAMatrix(vector<Transition> indexT, unordered_map<tuple<Transition, Transition>, int> Amap)
     {
         auto t2i = [indexT](Transition t) -> int {

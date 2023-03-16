@@ -35,5 +35,8 @@
     <ClInclude Include="multi_product_lib.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="tuple_hash.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
