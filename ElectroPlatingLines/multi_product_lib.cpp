@@ -724,7 +724,7 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
         writeIndexes<int>(allIndex, transitions, mV2iV(A * intVector2MaxPlus(vNTransitions)));
         return transitions;
     }
-
+    */
     matrix<series> Schedule::etvoAMatrix(vector<Transition> indexT, unordered_map<tuple<Transition, Transition>, int> Amap)
     {
         auto t2i = [indexT](Transition t) -> int {
@@ -742,7 +742,7 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
         }
         return A;
     }
-
+    
     vector<int> Schedule::mV2iV(matrix<series> i)
     {
         vector<int> a;//out(1, i.size());
@@ -771,7 +771,7 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
         for (auto& i : L) {
             B[i] = values[index++];
         }
-    }*/
+    }
     int Schedule::getMaxValue(const std::vector<std::tuple<int, std::vector<std::tuple<int, int> >, std::vector<int> > >& vec)
     {
         int maxValue = 0;
