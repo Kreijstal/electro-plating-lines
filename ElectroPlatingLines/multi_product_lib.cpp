@@ -472,11 +472,11 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
             }
             else {
                 //cout << "loop internalB" << i << endl;
-                for (int I = 0;I < len;I++) {
+                /*for (int I = 0;I < len;I++) {
                     A(I, I + (i * len)) = gd(1, 0);
-                }
+                }*/
                 for (auto& [key, value] : getA1(schedule[i], schedule[k])) {
-                    cout << "KEY:" << key << ", converted key: (" << (t2i(std::get<0>(key)) + len) % (len + size) << "," << t2i(std::get<1>(key)) << ") val:" << value << endl;
+                    cout << "KEY:" << key <<" t2i(KEY)=("<< "" << ", converted key: (" << (t2i(std::get<0>(key)) + len) % (len + size) << "," << t2i(std::get<1>(key)) << ") val:" << value << endl;
                     A((t2i(std::get<0>(key)) + len) % (len + size), t2i(std::get<1>(key))) = gd(1, value);
                 }
 
@@ -524,7 +524,15 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
             vector<Transition> allValues = getAllTransitionsFromHashmap(A1_matrix);
 
             for (const auto& av : allValues) {//diagonal
-                A1_matrix[std::make_tuple(av, av)] = (0);
+                auto s = std::make_tuple(av, av);
+                if (A1_matrix.find(s) == A1_matrix.end()) {
+
+                    A1_matrix[s] = 0;
+                }
+                else {
+                    A1_matrix[s] = max(A1_matrix[s], 0);
+                }
+                
             }
 
             //case 2 passing pieces that are "leftovers"
@@ -543,6 +551,8 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
                 else if (copiedQueue.size() == 1) {
                     auto s = std::make_tuple(t_convert(i + 1, lr::right, numOfTanks + 1),
                         t_convert(i + 1, lr::left, numOfTanks + 1));
+                    cout << "From To " <<
+                        s << endl;
                     if (A1_matrix.find(s) == A1_matrix.end()) {
 
                         A1_matrix[s] = (copiedQueue.front());
