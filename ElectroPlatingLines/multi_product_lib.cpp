@@ -79,70 +79,7 @@ std::ostream& operator<<(std::ostream& out, const TransitionMode& mode)
   os << "(" << std::get<0>(t) << ", " << std::get<1>(t) << ")";
   return os;
   }*/
-template <typename... Args>
-std::ostream& operator<<(std::ostream& os, const std::tuple<Args...>& t)
-{
-    os << "(";
-    std::apply([&os](const auto&... args) {
-        ((os << args << ", "), ...);
-        }, t);
-    os << "\b\b)";
-    return os;
-}
 
-template <typename T>
-std::ostream& operator<<(std::ostream& out,
-    const std::vector<T>& vec)
-{
-    out << "[";
-    bool first = true;
-    for (const auto& item : vec) {
-        if (!first) {
-            out << ", ";
-        }
-        out << item;
-        first = false;
-    }
-    out << "] ";
-    return out;
-}
-
-template <typename Key, typename Value>
-std::ostream& operator<<(std::ostream& out,
-    const std::unordered_map<Key, Value>& map)
-{
-    out << "{" << std::endl;
-    for (const auto& item : map) {
-        out << "  " << item.first << ": " << item.second << std::endl;
-    }
-    out << "}" << std::endl;
-    return out;
-}
-
-template <typename T>
-std::ostream& operator<<(std::ostream& out,
-    const std::queue<T>& q)
-{
-    std::queue<T> temp(q);
-    out << "Queue: [";
-    bool first = true;
-    while (!temp.empty()) {
-        if (!first) {
-            out << ", ";
-        }
-        first = false;
-        out << temp.front();
-        temp.pop();
-    }
-    out << "]";
-    return out;
-}
-template<typename T1, typename T2>
-std::ostream& operator<<(std::ostream& os, const std::pair<T1, T2>& p)
-{
-    os << "(" << p.first << ", " << p.second << ")";
-    return os;
-}
 /**
  * @brief Get the matrix index for a given Transition object and matrix length.
  *
@@ -238,21 +175,14 @@ matrix<series> stackMatricesDiagonally(vector<matrix<series>> vms) {
     return A;
 }
 
-template <typename T>
-std::vector<T> create_vector(T element, int length) {
-    // create an empty vector of size length
-    std::vector<T> vec(length);
-    // fill the vector with element
-    std::fill(vec.begin(), vec.end(), element);
-    return vec;
-}
+
 
 
     // Constructor
     //let initialTank=0 be input tank and initialTank=numberOfTanks+1 the output Tank
     //A modeArray is a vector of tuples where the first element is the Tank as a number, where 0 is the input tank and numberOfTanks+1 is the output tank.
     //And the second element is either the transportation or movement time.
-Mode::Mode(int initialTank, vector<tuple<int, int> > modeArray, vector<int> processingTimes, int numberOfTanks)
+RobotMode::RobotMode(int initialTank, vector<tuple<int, int> > modeArray, vector<int> processingTimes, int numberOfTanks)
         : initialTank(initialTank)
         , modeArray(modeArray)
         , processingTimes(processingTimes)
@@ -270,30 +200,30 @@ Mode::Mode(int initialTank, vector<tuple<int, int> > modeArray, vector<int> proc
     }
 
     // Getters and settersvector
-    int Mode::getInitialTank() const { return initialTank; }
-    void Mode::setInitialTank(int value) { initialTank = value; }
+    int RobotMode::getInitialTank() const { return initialTank; }
+    void RobotMode::setInitialTank(int value) { initialTank = value; }
 
-    vector<tuple<int, int>> Mode::getModeArray() const { return modeArray; }
-    void Mode::setModeArray(vector<tuple<int, int> > value)
+    vector<tuple<int, int>> RobotMode::getModeArray() const { return modeArray; }
+    void RobotMode::setModeArray(vector<tuple<int, int> > value)
     {
         modeArray = value;
         update();
     }
 
-    vector<int> Mode::getProcessingTimes() const { return processingTimes; }
-    void Mode::setProcessingTimes(vector<int> value)
+    vector<int> RobotMode::getProcessingTimes() const { return processingTimes; }
+    void RobotMode::setProcessingTimes(vector<int> value)
     {
         processingTimes = value;
         update();
     }
-    void Mode::update()
+    void RobotMode::update()
     {
         //initialTank
         //modeArray
         validate();
     }
     // Validation
-    void Mode::validate()
+    void RobotMode::validate()
     {
         if (modeArray.size() % 2 == 0) {
             throw std::invalid_argument("modeArray must have an odd length");
@@ -309,7 +239,7 @@ Mode::Mode(int initialTank, vector<tuple<int, int> > modeArray, vector<int> proc
         }
     }
 
-    void Mode::loopOverTupleWithTanksAndTimes() {
+    void RobotMode::loopOverTupleWithTanksAndTimes() {
         processingTimesQueues.clear();
         processingTimesQueues.resize(numOfTanks);
         queue<int> q;
@@ -342,7 +272,7 @@ Mode::Mode(int initialTank, vector<tuple<int, int> > modeArray, vector<int> proc
         updateContainerRequirements();
     }
 
-    void Mode::processTransportation(int index, int previousTank, int currentTank, queue<int>& q) {
+    void RobotMode::processTransportation(int index, int previousTank, int currentTank, queue<int>& q) {
         // Update A0_matrix with transportation time
         A0_matrix[std::make_tuple(t_convert(currentTank, IS_EVEN(index) ? take_deposit::take : take_deposit::deposit, numOfTanks + 1),
             t_convert(previousTank, IS_EVEN(index) ? take_deposit::deposit : take_deposit::take, numOfTanks + 1))] =
@@ -380,14 +310,14 @@ Mode::Mode(int initialTank, vector<tuple<int, int> > modeArray, vector<int> proc
         }
     }
 
-    void Mode::processMovement(int index, int previousTank, int currentTank) {
+    void RobotMode::processMovement(int index, int previousTank, int currentTank) {
         // Update A0_matrix with movement time
         A0_matrix[std::make_tuple(t_convert(currentTank, IS_EVEN(index) ? take_deposit::take : take_deposit::deposit, numOfTanks + 1),
             t_convert(previousTank, IS_EVEN(index) ? take_deposit::deposit : take_deposit::take, numOfTanks + 1))] =
             std::get<1>(modeArray[index]);
     }
 
-    void Mode::updateContainerRequirements() {
+    void RobotMode::updateContainerRequirements() {
         for (int i = 0; i < finalContainersTokenCount.size(); i++) {
             countainerRequirements[i] = -min(-countainerRequirements[i], finalContainersTokenCount[i]);
         }
@@ -419,8 +349,8 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
             std::vector<std::tuple<int, int> > modeArray;
             std::vector<int> processingTimes;
             std::tie(initialTank, modeArray, processingTimes) = t;
-            //cout << "Mode creation" << endl;
-            return Mode(initialTank, modeArray, processingTimes, n);
+            //cout << "RobotMode creation" << endl;
+            return RobotMode(initialTank, modeArray, processingTimes, n);
             });
     };
 
@@ -651,7 +581,7 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
             std::string errorMessage = "number of transitions does not match with Schedule, it should have at least " + std::to_string(matrixlength) + " transitions. Transitions vector is instead " + std::to_string(transitions.size()) + ".";
             throw std::invalid_argument(errorMessage);
         }
-        Mode mobj = vMode[mode];
+        RobotMode mobj = vMode[mode];
         vector<Transition> allValues; //list of used transitions
         {
             unordered_set<Transition> seen;
@@ -712,24 +642,7 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
         return a;
     }
 
-    template <typename T>
-    vector<T> Schedule::readIndexes(vector<int>& L, vector<T>& B)
-    {
-        //cout << "readIndexes, indexes:" << L << " vector:" << B << endl;
-        vector<T> result;
-        for (auto index : L) {
-            result.push_back(B[index]);
-        }
-        return result;
-    }
-    template <typename T>
-    void Schedule::writeIndexes(vector<int>& L, vector<T>& B, vector<T> values)
-    {
-        int index = 0;
-        for (auto& i : L) {
-            B[i] = values[index++];
-        }
-    }
+    
     int Schedule::getMaxValue(const std::vector<std::tuple<int, std::vector<std::tuple<int, int> >, std::vector<int> > >& vec)
     {
         int maxValue = 0;

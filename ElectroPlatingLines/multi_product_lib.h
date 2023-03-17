@@ -61,18 +61,70 @@ std::ostream& operator<<(std::ostream& os, const TransitionTank& tank);
 std::ostream& operator<<(std::ostream& os, const Transition& a);
 std::ostream& operator<<(std::ostream& out, const TransitionMode& mode);
 template <typename... Args>
-std::ostream& operator<<(std::ostream& os, const std::tuple<Args...>& t);
+std::ostream& operator<<(std::ostream& os, const std::tuple<Args...>& t)
+{
+    os << "(";
+    std::apply([&os](const auto&... args) {
+        ((os << args << ", "), ...);
+        }, t);
+    os << "\b\b)";
+    return os;
+}
+
 template <typename T>
 std::ostream& operator<<(std::ostream& out,
-    const std::vector<T>& vec);
+    const std::vector<T>& vec)
+{
+    out << "[";
+    bool first = true;
+    for (const auto& item : vec) {
+        if (!first) {
+            out << ", ";
+        }
+        out << item;
+        first = false;
+    }
+    out << "] ";
+    return out;
+}
+
 template <typename Key, typename Value>
 std::ostream& operator<<(std::ostream& out,
-    const std::unordered_map<Key, Value>& map);
+    const std::unordered_map<Key, Value>& map)
+{
+    out << "{" << std::endl;
+    for (const auto& item : map) {
+        out << "  " << item.first << ": " << item.second << std::endl;
+    }
+    out << "}" << std::endl;
+    return out;
+}
+
 template <typename T>
 std::ostream& operator<<(std::ostream& out,
-    const std::queue<T>& q);
+    const std::queue<T>& q)
+{
+    std::queue<T> temp(q);
+    out << "Queue: [";
+    bool first = true;
+    while (!temp.empty()) {
+        if (!first) {
+            out << ", ";
+        }
+        first = false;
+        out << temp.front();
+        temp.pop();
+    }
+    out << "]";
+    return out;
+}
 template<typename T1, typename T2>
-std::ostream& operator<<(std::ostream& os, const std::pair<T1, T2>& p);
+std::ostream& operator<<(std::ostream& os, const std::pair<T1, T2>& p)
+{
+    os << "(" << p.first << ", " << p.second << ")";
+    return os;
+}
+
 /*This is the signature for a C++ function named getMatrixIndex that takes two
 * arguments: a std::variant object named tand an int named matrixlength.The
 * std::variant object t can hold either a value of type IO or a value of type
@@ -124,7 +176,13 @@ gd i2gd(int a);
 matrix<series> stackMatricesDiagonally(vector<matrix<series>> vms);
 
 template <typename T>
-std::vector<T> create_vector(T element, int length);
+std::vector<T> create_vector(T element, int length) {
+    // create an empty vector of size length
+    std::vector<T> vec(length);
+    // fill the vector with element
+    std::fill(vec.begin(), vec.end(), element);
+    return vec;
+}
 
 
  /**
@@ -299,3 +357,21 @@ private:
  */
     bool isSquare(vector<vector<int>>& matrix);
 };
+template <typename T>
+vector<T> Schedule::readIndexes(vector<int>& L, vector<T>& B)
+{
+    //cout << "readIndexes, indexes:" << L << " vector:" << B << endl;
+    vector<T> result;
+    for (auto index : L) {
+        result.push_back(B[index]);
+    }
+    return result;
+}
+template <typename T>
+void Schedule::writeIndexes(vector<int>& L, vector<T>& B, vector<T> values)
+{
+    int index = 0;
+    for (auto& i : L) {
+        B[i] = values[index++];
+    }
+}

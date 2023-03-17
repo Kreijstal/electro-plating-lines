@@ -90,6 +90,7 @@ int main() {
     try {
         Mode my_schedule(0, { {1, 2}, { 2,2 }, {3,5} }, { 3 }, 2);
         std::cout << my_schedule.A0_matrix;
+        
 
     }
     catch (std::exception& e) {
