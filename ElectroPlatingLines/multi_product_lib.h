@@ -82,21 +82,86 @@ enum class lr {
     left,
     right
 };
+/**
+ * @brief Converts an integer to a Transition object, which can be either an IO enum or a TransitionTank struct.
+ *
+ * This function takes three parameters: an integer p representing the numeric input, an enum lr indicating
+ * whether it's an input or output transition, and an integer out. It maps the numeric input to a Transition
+ * object based on the tank and whether it's an input or output transition. The function returns a Transition
+ * object that can be either an IO (input/output) or a TransitionTank (with a tank index and an IO status).
+ *
+ * @param p Integer representing the numeric input.
+ * @param lr Enum of type lr, where lr::left represents an input transition and lr::right represents an output transition.
+ * @param out Integer representing the output tank.
+ * @return Transition object which can be either an IO enum (IO::INPUT or IO::OUTPUT) or a TransitionTank struct.
+ */
 Transition t_convert(int p, lr lr, int out);
+/**
+ * @brief Converts an integer to a gd struct.
+ *
+ * This function takes an integer as input and creates a gd struct with the provided integer value and a default
+ * gamma value of zero. The main purpose of this function is to simplify the creation of gd objects by allowing
+ * the user to provide only the integer value, while the function takes care of setting the default gamma value.
+ *
+ * @param a Integer value to be used as the second component of the gd struct.
+ * @return gd struct with the gamma value set to zero and the provided integer value as the second component.
+ */
 gd i2gd(int a);
 #define IS_EVEN(n) ((n) % 2 == 0)
 
+/**
+ * @brief Stacks a vector of matrices diagonally into a single matrix.
+ *
+ * This function takes a vector of matrices and stacks them diagonally into a single matrix. The resulting matrix
+ * has its dimensions computed as the sum of the rows and columns of all the input matrices. Each input matrix
+ * is placed diagonally in the resulting matrix, with no overlapping between matrices.
+ *
+ * @param vms Vector of matrices with elements of type series.
+ * @return A matrix of type series with the input matrices stacked diagonally.
+ */
 matrix<series> stackMatricesDiagonally(vector<matrix<series>> vms);
 
 template <typename T>
 std::vector<T> create_vector(T element, int length);
 
+
+ /**
+  * @class Mode
+  * @brief Represents a mode in a Switched Linear Dual Inequalities (SLDI) model based on a Timed Event Graph (TEG).
+  *
+  * This class takes information from a P-TEG, such as the tanks used, the transportation/movement time, and the
+  * processing time, and exposes the A0 matrix through an unordered_map attribute. It also provides information
+  * about tokens that remained on the TEG as a vector of queues.
+  * 
+  *  This class models a processing mode in a system with multiple tanks.
+ * It keeps track of transportation and movement times between tanks,
+ * processing times for each tank, and the initial and final states
+ * of the system.
+ *
+ * The class provides methods to set and retrieve various attributes,
+ * such as initial tank, mode array, and processing times. It also
+ * performs validation on the input data and calculates the minimum
+ * number of tokens required in each container during the process.
+  */
 class Mode {
 public:
-    // Constructor
-    //let initialTank=0 be input tank and initialTank=numberOfTanks+1 the output Tank
-    //A modeArray is a vector of tuples where the first element is the Tank as a number, where 0 is the input tank and numberOfTanks+1 is the output tank.
-    //And the second element is either the transportation or movement time.
+    /**
+ * @brief Constructs a Mode object.
+ *
+ * @param initialTank An integer representing the initial tank.
+ *        0 indicates the input tank, and numberOfTanks + 1 indicates the output tank.
+ * @param modeArray A vector of tuples, where the first element is the tank number
+ *        (0 for the input tank and numberOfTanks + 1 for the output tank),
+ *        and the second element is either the transportation or movement time.
+ * @param processingTimes A vector of integers representing the processing times
+ *        for each tank.
+ * @param numberOfTanks An integer representing the total number of tanks,
+ *        excluding the input and output tanks.
+ *
+ * @throws std::invalid_argument If modeArray has an even length, or if the
+ *         processing times vector has an invalid length, or if the tank number
+ *         is greater than the specified number of tanks.
+ */
     Mode(int initialTank, std::vector<std::tuple<int, int>> modeArray, std::vector<int> processingTimes, int numberOfTanks);
     int getInitialTank() const;
     void setInitialTank(int value);
@@ -105,7 +170,9 @@ public:
     vector<int> getProcessingTimes() const;
     void setProcessingTimes(vector<int> value);
     void update();
-    // Validation
+    /**
+     * @brief Validates the mode array and processing times to ensure they follow the expected constraints.
+     */
     void validate();
     vector<queue<int>> processingTimesQueues;
     vector<int> finalContainersTokenCount;
@@ -113,7 +180,37 @@ public:
     std::unordered_map<tuple<Transition, Transition>, int> A0_matrix;
     int lastTank;
 private:
+    /**
+ * @brief Processes the modeArray and updates various data structures within the class.
+ *
+ * The loopOverTupleWithTanksAndTimes() function iterates over the modeArray, which is a vector
+ * of tuples where the first element is the tank number (0 for the input tank and
+ * numOfTanks + 1 for the output tank), and the second element is either the transportation
+ * or movement time. The function updates the processingTimesQueues, A0_matrix,
+ * finalContainersTokenCount, and countainerRequirements data structures.
+ *
+ * The function distinguishes transportation operations from movement operations by checking the index of the current tuple in the modeArray. If the index is even, the operation is considered a transportation operation; if the index is odd, the operation is considered a movement operation.
+ * 
+ * 
+ * The high-level algorithm is as follows:
+ * 1. Iterate over the tuples in the modeArray.
+ * 2. For each tuple, check if the index is even or odd.
+ *    - If the index is even (transportation operation):
+ *      - Update the A0_matrix with the transportation time.
+ *      - Adjust the finalContainersTokenCount vector based on the transportation operation.
+ *      - Update the processing times for the corresponding tanks.
+ *    - If the index is odd (movement operation), update the A0_matrix with the movement time.
+ * 3. Calculate the minimum number of tokens required in each container based on the
+ *    finalContainersTokenCount vector.
+ *
+ * The function assumes that the input data is valid and throws exceptions if certain
+ * conditions are not met, such as an invalid number of tanks, an invalid length of
+ * modeArray, or if processing times are not found for a given operation.
+ */
     void loopOverTupleWithTanksAndTimes();
+    void processTransportation(int index, int previousTank, int currentTank, queue<int>& q);
+    void processMovement(int index, int previousTank, int currentTank);
+    void updateContainerRequirements();
     int numOfTanks;
     int initialTank;
 
@@ -159,14 +256,44 @@ public:
 
 private:
     std::unordered_map<tuple<int, int>, std::unordered_map<tuple<Transition, Transition>, int>> A1cache;
+    /**
+ * @brief Converts a map of transition pairs and integers to a matrix of series objects.
+ *
+ * This function creates a matrix of series objects using the given map of transition pairs
+ * and integers, and a vector of transitions for indexing. It uses a lambda function to find
+ * the index of a transition in the indexT vector.
+ *
+ * @param indexT A vector of Transition objects, used for indexing.
+ * @param Amap An unordered_map containing pairs of Transition objects as keys and integers as values.
+ * @return A matrix<series> object, where the elements are series objects created from the input map.
+ * @throws std::runtime_error If a Transition couldn't be found in the indexT vector.
+ */
     matrix<series> etvoAMatrix(vector<Transition> indexT, unordered_map<tuple<Transition, Transition>, int> Amap);
-
-    vector<int> mV2iV(matrix<series> i);
+    /**
+ * @brief Converts a matrix of series objects to a standard vector of integers.
+ *
+ * This function iterates through the given matrix of series objects, extracting the
+ * integer values from each series object and inserting them into a standard vector.
+ * If a series object cannot be converted to an integer, the function throws a runtime_error.
+ *
+ * @param i A matrix<series> object representing the input matrix of series objects.
+ * @return A vector<int> containing the integer values extracted from the input matrix.
+ * @throws runtime_error If a series object cannot be converted to an integer.
+ */
+    vector<int> etvoVector2stdVector(matrix<series> i);
 
     template <typename T>
     vector<T> readIndexes(vector<int>& L, vector<T>& B);
     template <typename T>
     void writeIndexes(vector<int>& L, vector<T>& B, vector<T> values);
     int getMaxValue(const std::vector<std::tuple<int, std::vector<std::tuple<int, int> >, std::vector<int> > >& vec);
+    /**
+ * @brief Checks if the given matrix is square.
+ *
+ * This function checks if the given matrix has an equal number of rows and columns.
+ *
+ * @param matrix A reference to a vector of vector of integers representing the matrix.
+ * @return A boolean value indicating if the matrix is square or not.
+ */
     bool isSquare(vector<vector<int>>& matrix);
 };

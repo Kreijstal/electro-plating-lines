@@ -9,9 +9,6 @@
 #include <cstddef>
 #include <numeric>
 #include "multi_product_lib.h"
-using namespace std; //this imports the standard library, every cout and vector
-using namespace etvo; //just a library :P every matrix and series. all elements from the library
-// code from https://stackoverflow.com/a/55113454/10000823
 
 
 inline bool operator==(const TransitionTank& lhs, const TransitionTank& rhs)
@@ -146,10 +143,16 @@ std::ostream& operator<<(std::ostream& os, const std::pair<T1, T2>& p)
     os << "(" << p.first << ", " << p.second << ")";
     return os;
 }
-/*This is the signature for a C++ function named getMatrixIndex that takes two
- * arguments: a std::variant object named t and an int named matrixlength. The
- * std::variant object t can hold either a value of type IO or a value of type
- * TransitionTank. The function returns an int.*/
+/**
+ * @brief Get the matrix index for a given Transition object and matrix length.
+ *
+ * @param t A std::variant object which can hold either a value of type IO or a value of type TransitionTank.
+ * @param matrixlength An int representing the length of the matrix.
+ * @return int The matrix index based on the given Transition object and matrix length.
+ *
+ * This function calculates the matrix index based on the given Transition object (t) and matrix length (matrixlength).
+ * The Transition object (t) is a std::variant that can hold either a value of type IO or a value of type TransitionTank.
+ */
 int getMatrixIndex(Transition t, int matrixlength)
 {
     // Use the std::visit function to access the IO enum class based on the value
@@ -181,11 +184,7 @@ int getMatrixIndex(Transition t, int matrixlength)
     return 0;
 }
 
-/*typedef struct {
-  int initialTank;
-  vector<tuple<int, int>> modeArray;
-  vector<int>	procesingTimes;
-  } mode;*/
+
 Transition
 t_convert(int p, lr lr, int out)
 {
@@ -201,6 +200,7 @@ gd i2gd(int a)
     return gd(0, a);
 }
 #define IS_EVEN(n) ((n) % 2 == 0)
+
 
 matrix<series> stackMatricesDiagonally(vector<matrix<series>> vms) {
     //cout << "stackingMatrices diagonally!" << endl;
@@ -299,7 +299,7 @@ Mode::Mode(int initialTank, vector<tuple<int, int> > modeArray, vector<int> proc
             throw std::invalid_argument("modeArray must have an odd length");
         }
         int lastCount = 0;
-        for (int i = 0; i < modeArray.size(); i++) {
+        for (unsigned int i = 0; i < modeArray.size(); i++) {
             if (std::get<0>(modeArray[i]) == numOfTanks + 1)
                 lastCount++;
         }
@@ -331,47 +331,67 @@ Mode::Mode(int initialTank, vector<tuple<int, int> > modeArray, vector<int> proc
             if (previousTank > numOfTanks + 1 || currentTank > numOfTanks + 1) {
                 throw std::invalid_argument("numOfTanks must be greater than the actual tanks given on modeArray");
             }
-            //in,out
-            A0_matrix[std::make_tuple(t_convert(currentTank, IS_EVEN(index) ? lr::left : lr::right, numOfTanks + 1), t_convert(previousTank, IS_EVEN(index) ? lr::right : lr::left, numOfTanks + 1))] = std::get<1>(modeArray[index]);
-            if (IS_EVEN(index)) {//if even it is transportation, if odd it is movement
-                if (previousTank == numOfTanks + 1)
-                    throw std::invalid_argument("You can't take a piece from the output deposit");
-                if (currentTank == 0)
-                    throw std::invalid_argument("You can't put a piece on the input deposit");
-                if (previousTank != 0) {
-                    finalContainersTokenCount[previousTank - 1]--;
-                    int popped;
-                    if (processingTimesQueues[previousTank - 1].empty()) {
-                        //we don't assume object already exists
-                        //throw runtime_error("Queue is empty");
-                        cout << "processing time not found." << endl;
 
-                    }
-                    else {
-                        popped = processingTimesQueues[previousTank - 1].front();
-                        processingTimesQueues[previousTank - 1].pop();
-                        A0_matrix[std::make_tuple(t_convert(previousTank, lr::right, numOfTanks + 1), t_convert(previousTank, lr::left, numOfTanks + 1))] = popped;
-                    }
-
-                }
-                if (currentTank != numOfTanks + 1) {
-                    finalContainersTokenCount[currentTank - 1]++;
-                    // cout << "q is gonna pop q:" << q.size() << " processingTimes size:" << processingTimes.size() << " (previousTank,currentTank)=("<<previousTank<<"," << currentTank<<"); numOfTanks="<< numOfTanks <<endl;
-                    if (q.empty()) {
-                        throw runtime_error("q Queue was empty");
-                    }
-                    // cout << "processingTimesQueues size: " << processingTimesQueues.size() << "; currentTank: " << currentTank << endl;
-                    processingTimesQueues[currentTank - 1].push(q.front());
-                    //  cout << "lol";
-                    q.pop();
-                }
-                for (int i = 0; i < finalContainersTokenCount.size(); i++) {
-                    countainerRequirements[i] = -min(-countainerRequirements[i], finalContainersTokenCount[i]);
-                }
+            if (IS_EVEN(index)) { // If even, it is a transportation operation
+                processTransportation(index, previousTank, currentTank, q);
             }
+            else { // If odd, it is a movement operation
+                processMovement(index, previousTank, currentTank);
+            }
+        }
+        updateContainerRequirements();
+    }
+
+    void Mode::processTransportation(int index, int previousTank, int currentTank, queue<int>& q) {
+        // Update A0_matrix with transportation time
+        A0_matrix[std::make_tuple(t_convert(currentTank, IS_EVEN(index) ? lr::left : lr::right, numOfTanks + 1),
+            t_convert(previousTank, IS_EVEN(index) ? lr::right : lr::left, numOfTanks + 1))] =
+            std::get<1>(modeArray[index]);
+
+        if (previousTank == numOfTanks + 1)
+            throw std::invalid_argument("You can't take a piece from the output deposit");
+
+        if (currentTank == 0)
+            throw std::invalid_argument("You can't put a piece on the input deposit");
+
+        if (previousTank != 0) {
+            finalContainersTokenCount[previousTank - 1]--;
+            int popped;
+            if (processingTimesQueues[previousTank - 1].empty()) {
+                // We don't assume the object already exists
+                // throw runtime_error("Queue is empty");
+                cout << "processing time not found." << endl;
+            }
+            else {
+                popped = processingTimesQueues[previousTank - 1].front();
+                processingTimesQueues[previousTank - 1].pop();
+                A0_matrix[std::make_tuple(t_convert(previousTank, lr::right, numOfTanks + 1),
+                    t_convert(previousTank, lr::left, numOfTanks + 1))] = popped;
+            }
+        }
+
+        if (currentTank != numOfTanks + 1) {
+            finalContainersTokenCount[currentTank - 1]++;
+            if (q.empty()) {
+                throw runtime_error("q Queue was empty");
+            }
+            processingTimesQueues[currentTank - 1].push(q.front());
+            q.pop();
         }
     }
 
+    void Mode::processMovement(int index, int previousTank, int currentTank) {
+        // Update A0_matrix with movement time
+        A0_matrix[std::make_tuple(t_convert(currentTank, IS_EVEN(index) ? lr::left : lr::right, numOfTanks + 1),
+            t_convert(previousTank, IS_EVEN(index) ? lr::right : lr::left, numOfTanks + 1))] =
+            std::get<1>(modeArray[index]);
+    }
+
+    void Mode::updateContainerRequirements() {
+        for (int i = 0; i < finalContainersTokenCount.size(); i++) {
+            countainerRequirements[i] = -min(-countainerRequirements[i], finalContainersTokenCount[i]);
+        }
+    }
 
 matrix<series> createVectorInETVO(int length) {
     matrix<series> out(length, 1);
@@ -380,7 +400,7 @@ matrix<series> createVectorInETVO(int length) {
 matrix<series> intVector2MaxPlus(vector<int> i)
 {
     matrix<series> out(i.size(), 1);
-    for (int index = 0; index < i.size(); ++index) {
+    for (unsigned int index = 0; index < i.size(); ++index) {
         out(index, 0) = i2gd(i[index]);
     }
     return out;
@@ -425,7 +445,7 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
         matrix<series> A(len * size, len * size);
         //cout << "matrix sixe of " << len * size << "^2" << endl;
         //cout << "BEF RETURN" << endl;
-        for (int k, i = 0;i < size;i++) {
+        for (unsigned int k, i = 0;i < size;i++) {
             //cout << "loop internal" << i << endl;
             k = (i + 1) % size;
             //if k=0 gamma=1
@@ -456,6 +476,7 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
                     A(I, I + (i * len)) = gd(1, 0);
                 }
                 for (auto& [key, value] : getA1(schedule[i], schedule[k])) {
+                    cout << "KEY:" << key << ", converted key: (" << (t2i(std::get<0>(key)) + len) % (len + size) << "," << t2i(std::get<1>(key)) << ") val:" << value << endl;
                     A((t2i(std::get<0>(key)) + len) % (len + size), t2i(std::get<1>(key))) = gd(1, value);
                 }
 
@@ -471,30 +492,38 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
         return std::make_tuple(A, stackMatricesDiagonally(create_vector(B, size)));
 
     }
+    vector<Transition> getAllTransitionsFromHashmap(std::unordered_map<tuple<Transition, Transition>, int>& map) {
+        vector<Transition> allValues; //list of used transitions
+
+        unordered_set<Transition> seen;
+        for (auto& [key, value] : map) {
+            if (!seen.count(std::get<0>(key))) {
+                allValues.push_back(std::get<0>(key));
+                seen.insert(std::get<0>(key));
+            }
+            if (!seen.count(std::get<1>(key))) {
+                allValues.push_back(std::get<1>(key));
+                seen.insert(std::get<1>(key));
+            }
+        }
+        return allValues;
+    }
     std::unordered_map<tuple<Transition, Transition>, int> Schedule::getA1(int prevMode, int currMode) {
         auto tup = std::make_tuple(prevMode, currMode);
         if (A1cache.find(tup) == A1cache.end()) {
             std::unordered_map<tuple<Transition, Transition>, int> A1_matrix;
             //in order to create A1 we need to take care of three cases
             //case 1 when going from last tank in previous mode to first tank in current mode
-            A1_matrix[std::make_tuple(t_convert(vMode[currMode].getInitialTank(), lr::right, numOfTanks + 1),
-                t_convert(vMode[prevMode].lastTank, lr::left, numOfTanks + 1))] = (mTransTimes[currMode][prevMode]);
+            auto tofrom = std::make_tuple(t_convert(vMode[currMode].getInitialTank(), lr::right, numOfTanks + 1),
+                t_convert(vMode[prevMode].lastTank, lr::left, numOfTanks + 1));
+            cout << "from last tank 1st mode to 1st tank second mode:" <<
+                tofrom << endl;
+            A1_matrix[tofrom] = (mTransTimes[currMode][prevMode]);
             //case 3 pass through
-            vector<Transition> allValues; //list of used transitions
+            
+            vector<Transition> allValues = getAllTransitionsFromHashmap(A1_matrix);
 
-            unordered_set<Transition> seen;
-            for (auto& [key, value] : A1_matrix) {
-                if (!seen.count(std::get<0>(key))) {
-                    allValues.push_back(std::get<0>(key));
-                    seen.insert(std::get<0>(key));
-                }
-                if (!seen.count(std::get<1>(key))) {
-                    allValues.push_back(std::get<1>(key));
-                    seen.insert(std::get<1>(key));
-                }
-            }
-
-            for (const auto& av : allValues) {
+            for (const auto& av : allValues) {//diagonal
                 A1_matrix[std::make_tuple(av, av)] = (0);
             }
 
@@ -609,7 +638,7 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
         vector<int> vNTransitions = readIndexes(allIndex, transitions);
         cout << allIndex << endl;
         cout << intVector2MaxPlus(vNTransitions) << endl;
-        writeIndexes<int>(allIndex, transitions, mV2iV(A1 * intVector2MaxPlus(vNTransitions)));
+        writeIndexes<int>(allIndex, transitions, etvoVector2stdVector(A1 * intVector2MaxPlus(vNTransitions)));
         return transitions;
     }
 
@@ -647,8 +676,8 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
             return getMatrixIndex(t, matrixlength);
             });
         vector<int> vNTransitions = readIndexes(allIndex, transitions);
-        //cout << mV2iV(A * intVector2MaxPlus(vNTransitions)) << endl;
-        writeIndexes<int>(allIndex, transitions, mV2iV(A * intVector2MaxPlus(vNTransitions)));
+        //cout << etvoVector2stdVector(A * intVector2MaxPlus(vNTransitions)) << endl;
+        writeIndexes<int>(allIndex, transitions, etvoVector2stdVector(A * intVector2MaxPlus(vNTransitions)));
         return transitions;
     }
     
@@ -670,13 +699,15 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
         return A;
     }
     
-    vector<int> Schedule::mV2iV(matrix<series> i)
+    vector<int> Schedule::etvoVector2stdVector(matrix<series> i)
     {
         vector<int> a;//out(1, i.size());
         int size = i.GetRow();
         for (int index = 0; index < size; ++index) {
             //cout << "access here:"<<index<<" size:"<<size<<endl;
-            a.push_back(i(index, 0).getQ().getpol(0).getd());
+            auto s = i(index, 0);
+            if (!s.isPoly()|| s.getQ().getn() != 1|| s.getQ().getpol(0).getg()!=0)throw runtime_error("series can't be converted to int");
+            a.push_back(s.getQ().getpol(0).getd());
         }
         return a;
     }

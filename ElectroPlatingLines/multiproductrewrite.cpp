@@ -1,7 +1,4 @@
 #include "multi_product_lib.h"
-#include "etvo.h"
-using namespace std; 
-using namespace etvo;
 int main()
 {
     try {
@@ -49,11 +46,11 @@ int main()
         //s.simpli();
         //cout <<"printing <:"<<(gd(0,0)<gd(1,13))<<(gd(0, 0) <= gd(1, 13))<< endl;
  
-        //cout << series(gd(1, 2))+ series(gd(2, 10)) << endl;
+        //cout << series(gd(1, 2))+ series(gd(2, 10)) << endl;*/
         auto c = A.star();
         //c(0, 5).canon();
-        /*cout << "now this is A:" << endl << Asimilar << "END" << endl;
-        cout << "now this is A*:" << endl << Asimilar.star() << "END" << endl;
+        cout << "now this is A:" << endl << A << "END" << endl;
+        cout << "now this is A*:" << endl << c << "END" << endl;/*
         series asdf = poly::Epsilon();
         series bsdf = gd(1, 10);
         series csdf = gd(0, 3);
