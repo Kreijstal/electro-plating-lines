@@ -13,6 +13,7 @@ int main()
         matrix<series> A, B;
         std::tie(A, B) =a.getBigAandBMatrix({0,0});
         matrix<series> Asimilar(2, 2);
+        gd(0, 0) < gd(1, 4);
         //Asimilar(0, 3) = gd(0,2);
         //Asimilar(0, 4) = gd(1, 0);
         //Asimilar(1, 0) = gd(0, 3);
@@ -50,7 +51,8 @@ int main()
         auto c = A.star();
         //c(0, 5).canon();
         cout << "now this is A:" << endl << A << "END" << endl;
-        cout << "now this is A*:" << endl << c << "END" << endl;/*
+        cout << "now this is A*:" << endl << c << "END" << endl;
+                /*
         series asdf = poly::Epsilon();
         series bsdf = gd(1, 10);
         series csdf = gd(0, 3);
