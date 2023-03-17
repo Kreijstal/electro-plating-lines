@@ -24,7 +24,8 @@ stages:          # List of stages for jobs, and their order of execution
 build-job:       # This job runs in the build stage, which runs first.
   stage: build
   script:
-    - echo "Compiling the code..."
+    - echo "clone and make"
+    - source init.sh
     - echo "Compile complete."
   tags:
     - "donotsteal"
