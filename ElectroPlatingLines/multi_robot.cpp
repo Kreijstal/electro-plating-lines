@@ -1,23 +1,41 @@
 #include "ElectroPlatingLines.h"
+#include "multi_product_lib.h"
+#include <iostream>
+#include <exception>
+#include <stdio.h>
+#include <stdlib.h>
+#include <cassert>
+#include <algorithm>
+#include <functional>
+#include <cinttypes>
+#include <cstddef>
+#include <numeric>
 
 // Define a struct named "robot_arm_1" that represents a robot arm
-struct robot_arm_1
+
+//use these structs!! to represent the shared place!
+struct robot_arm //TO DO: merge the robot arm structs , one struct for all the robot arms
 {    // Define a member named "robot_1_movement_time" that is a vector of ints
-    std::vector<int> robot_1_movement_time;
-    std::vector<int> robot_1_transport_time;
-    std::vector<int> robot_1_processing_time;
-    std::vector<tuple<int,int>> robot_1_route;
+    std::vector<int> robot_movement_time;
+    std::vector<int> robot_transport_time;
+    std::vector<int> robot_processing_time;
+    std::vector<tuple<int,int>> robot_route;
 };
 
-struct robot_arm_2
+//Mode(int initialTank, std::vector<std::tuple<int, int>> modeArray, std::vector<int> processingTimes, int numberOfTanks);
+
+
+//Mode(int initialTank, std::vector<std::tuple<int, int>> modeArray, std::vector<int> processingTimes, int numberOfTanks);
+//initialTank
+
+struct shared_tank
 {
-    std::vector<int> robot_2_movement_time;
-    std::vector<int> robot_2_transport_time;
-    std::vector<int> robot_2_processing_time;
-    std::vector<tuple<int, int>> robot_2_route;
-};
-// Create an instance of the "robot_arm_1" struct named "arm"
+// 
 
+};
+
+
+// Create an instance of the "robot_arm_1" struct named "arm"
 // 18. November 2022 Freitag. EN Gebaeude //
 //switched max plus, define matrices. a for product a, b for product b. once u have them u can combine them. problem is getting the matrices. 
 //robot follows the same route, and products stay there for the same time. 
@@ -45,8 +63,8 @@ struct robot_arm_2
 //   shared files for things we share. w juan 
 int main() {
     
-    info_products robotarm1;
-    robot_arm_1 arm;
+   /* info_products robotarm1;
+    robot_arm arm1;
     // Initialize the "robot_1_movement_time" member of "arm" with the specified vector of ints
     arm.robot_1_movement_time = { 1,2,3 };
     arm.robot_1_transport_time = { 4,5,6 };
@@ -59,7 +77,7 @@ int main() {
     
 
     info_products robotarm2;
-    robot_arm_2 arm2;
+    robot_arm arm2;
     arm2.robot_2_movement_time = { 2, 3, 1, 5 };
     arm2.robot_2_transport_time = { 1, 2, 3, 4 };
     arm2.robot_2_processing_time = { 5, 4, 3, 2 };
@@ -67,7 +85,20 @@ int main() {
     robotarm2.route = arm2.robot_1_route;
     robotarm2.processingTime = arm2.robot_1_processing_time;
     robotarm2.transportationTime = arm2.robot_1_transport_time;
-    robotarm2.movementTime = arm2.robot_1_movement_time;
+    robotarm2.movementTime = arm2.robot_1_movement_time;*/
+
+    try {
+        Mode my_schedule(0, { {1, 2}, { 2,2 }, {3,5} }, { 3 }, 2);
+        std::cout << my_schedule.A0_matrix;
+
+    }
+    catch (std::exception& e) {
+        std::cerr << endl
+            << "An error has been detected in the program, the program will exit now." << endl
+            << "error message:" << e.what() << endl;
+        return 1;
+    }
+ 
     return 0;
 }
 

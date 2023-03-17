@@ -78,27 +78,29 @@ std::ostream& operator<<(std::ostream& os, const std::pair<T1, T2>& p);
 * std::variant object t can hold either a value of type IO or a value of type
 * TransitionTank.The function returns an int.*/
 int getMatrixIndex(Transition t, int matrixlength);
-enum class lr {
-    left,
-    right
+enum class take_deposit {
+    take,
+    deposit
 };
 /**
  * @brief Converts an integer to a Transition object, which can be either an IO enum or a TransitionTank struct.
  *
- * This function takes three parameters: an integer p representing the numeric input, an enum lr indicating
- * whether it's an input or output transition, and an integer out. It maps the numeric input to a Transition
+ * This function takes three parameters: an integer tank_ID representing the numeric input (meaning the tank number),
+ * an enum lr indicating, whether it's an input or output transition, and an integer out/last_tank. It maps the numeric input to a Transition
  * object based on the tank and whether it's an input or output transition. The function returns a Transition
  * object that can be either an IO (input/output) or a TransitionTank (with a tank index and an IO status).
  *
- * @param p Integer representing the numeric input.
- * @param lr Enum of type lr, where lr::left represents an input transition and lr::right represents an output transition.
- * @param out Integer representing the output tank.
+ * @param tank_ID Integer representing the numeric input. #(where the transitions begin)#
+ * @param lr Enum of type lr, where lr::take represents an input transition and lr::deposit represents an output transition.
+ * @param out Integer representing the number of output tank.
  * @return Transition object which can be either an IO enum (IO::INPUT or IO::OUTPUT) or a TransitionTank struct.
  */
-Transition t_convert(int p, lr lr, int out);
+Transition t_convert(int tank_ID, take_deposit lr, int last_tank);
 /**
  * @brief Converts an integer to a gd struct.
  *
+ * tank_ID = is the tank where the hoist begins. (begin_tank)
+ * lr = left/right (left=input,right=output)
  * This function takes an integer as input and creates a gd struct with the provided integer value and a default
  * gamma value of zero. The main purpose of this function is to simplify the creation of gd objects by allowing
  * the user to provide only the integer value, while the function takes care of setting the default gamma value.

@@ -186,13 +186,13 @@ int getMatrixIndex(Transition t, int matrixlength)
 
 
 Transition
-t_convert(int p, lr lr, int out)
+t_convert(int p, take_deposit lr, int out)
 {
     if (p == 0)
         return IO::INPUT;
     if (p == out)
         return IO::OUTPUT;
-    return TransitionTank{ p - 1, lr == lr::left ? IO::INPUT : IO::OUTPUT };
+    return TransitionTank{ p - 1, lr == take_deposit::take ? IO::INPUT : IO::OUTPUT };
 }
 
 gd i2gd(int a)
@@ -344,8 +344,8 @@ Mode::Mode(int initialTank, vector<tuple<int, int> > modeArray, vector<int> proc
 
     void Mode::processTransportation(int index, int previousTank, int currentTank, queue<int>& q) {
         // Update A0_matrix with transportation time
-        A0_matrix[std::make_tuple(t_convert(currentTank, IS_EVEN(index) ? lr::left : lr::right, numOfTanks + 1),
-            t_convert(previousTank, IS_EVEN(index) ? lr::right : lr::left, numOfTanks + 1))] =
+        A0_matrix[std::make_tuple(t_convert(currentTank, IS_EVEN(index) ? take_deposit::take : take_deposit::deposit, numOfTanks + 1),
+            t_convert(previousTank, IS_EVEN(index) ? take_deposit::deposit : take_deposit::take, numOfTanks + 1))] =
             std::get<1>(modeArray[index]);
 
         if (previousTank == numOfTanks + 1)
@@ -365,8 +365,8 @@ Mode::Mode(int initialTank, vector<tuple<int, int> > modeArray, vector<int> proc
             else {
                 popped = processingTimesQueues[previousTank - 1].front();
                 processingTimesQueues[previousTank - 1].pop();
-                A0_matrix[std::make_tuple(t_convert(previousTank, lr::right, numOfTanks + 1),
-                    t_convert(previousTank, lr::left, numOfTanks + 1))] = popped;
+                A0_matrix[std::make_tuple(t_convert(previousTank, take_deposit::deposit, numOfTanks + 1),
+                    t_convert(previousTank, take_deposit::take, numOfTanks + 1))] = popped;
             }
         }
 
@@ -382,8 +382,8 @@ Mode::Mode(int initialTank, vector<tuple<int, int> > modeArray, vector<int> proc
 
     void Mode::processMovement(int index, int previousTank, int currentTank) {
         // Update A0_matrix with movement time
-        A0_matrix[std::make_tuple(t_convert(currentTank, IS_EVEN(index) ? lr::left : lr::right, numOfTanks + 1),
-            t_convert(previousTank, IS_EVEN(index) ? lr::right : lr::left, numOfTanks + 1))] =
+        A0_matrix[std::make_tuple(t_convert(currentTank, IS_EVEN(index) ? take_deposit::take : take_deposit::deposit, numOfTanks + 1),
+            t_convert(previousTank, IS_EVEN(index) ? take_deposit::deposit : take_deposit::take, numOfTanks + 1))] =
             std::get<1>(modeArray[index]);
     }
 
@@ -514,8 +514,8 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
             std::unordered_map<tuple<Transition, Transition>, int> A1_matrix;
             //in order to create A1 we need to take care of three cases
             //case 1 when going from last tank in previous mode to first tank in current mode
-            auto tofrom = std::make_tuple(t_convert(vMode[currMode].getInitialTank(), lr::right, numOfTanks + 1),
-                t_convert(vMode[prevMode].lastTank, lr::left, numOfTanks + 1));
+            auto tofrom = std::make_tuple(t_convert(vMode[currMode].getInitialTank(), take_deposit::deposit, numOfTanks + 1),
+                t_convert(vMode[prevMode].lastTank, take_deposit::take, numOfTanks + 1));
             cout << "from last tank 1st mode to 1st tank second mode:" <<
                 tofrom << endl;
             A1_matrix[tofrom] = (mTransTimes[currMode][prevMode]);
@@ -541,8 +541,8 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
                 if (copiedQueue.size() > 1)
                     throw std::runtime_error("Output of previous Mode has more than 1 piece in a tank");
                 else if (copiedQueue.size() == 1) {
-                    auto s = std::make_tuple(t_convert(i + 1, lr::right, numOfTanks + 1),
-                        t_convert(i + 1, lr::left, numOfTanks + 1));
+                    auto s = std::make_tuple(t_convert(i + 1, take_deposit::deposit, numOfTanks + 1),
+                        t_convert(i + 1, take_deposit::take, numOfTanks + 1));
                     if (A1_matrix.find(s) == A1_matrix.end()) {
 
                         A1_matrix[s] = (copiedQueue.front());
@@ -567,8 +567,8 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
         std::unordered_map<tuple<Transition, Transition>, int> A1_matrix;
         //in order to create A1 we need to take care of three cases
         //case 1 when going from last tank in previous mode to first tank in current mode
-        A1_matrix[std::make_tuple(t_convert(vMode[currMode].getInitialTank(), lr::right, numOfTanks + 1),
-            t_convert(vMode[prevMode].lastTank, lr::left, numOfTanks + 1))] = (mTransTimes[currMode][prevMode]);
+        A1_matrix[std::make_tuple(t_convert(vMode[currMode].getInitialTank(), take_deposit::deposit, numOfTanks + 1),
+            t_convert(vMode[prevMode].lastTank, take_deposit::take, numOfTanks + 1))] = (mTransTimes[currMode][prevMode]);
         //case 3 pass through
         vector<Transition> allValues; //list of used transitions
 
@@ -602,8 +602,8 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
             if (copiedQueue.size() > 1)
                 throw std::runtime_error("Output of previous Mode has more than 1 piece in a tank");
             else if (copiedQueue.size() == 1) {
-                auto s = std::make_tuple(t_convert(i + 1, lr::right, numOfTanks + 1),
-                    t_convert(i + 1, lr::left, numOfTanks + 1));
+                auto s = std::make_tuple(t_convert(i + 1, take_deposit::deposit, numOfTanks + 1),
+                    t_convert(i + 1, take_deposit::take, numOfTanks + 1));
                 if (A1_matrix.find(s) == A1_matrix.end()) {
 
                     A1_matrix[s] = (copiedQueue.front());
