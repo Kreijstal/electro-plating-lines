@@ -1,5 +1,6 @@
 PROGRAM = multiproductrewrite
-CPP_FILE = ElectroPlatingLines/$(PROGRAM).cpp
+CPP_FILES = ElectroPlatingLines/multi_product_lib.cpp ElectroPlatingLines/$(PROGRAM).cpp
+HEADER_FILES = ElectroPlatingLines/ElectroPlatingLines.h ElectroPlatingLines/multi_product_lib.h ElectroPlatingLines/tuple_hash.h ../Hadamard_product_counters/etvo.h
 ETVO_OBJECT = ../Hadamard_product_counters/etvo.o
 
 CC = g++
@@ -12,8 +13,8 @@ $(ETVO_OBJECT):
                 make -C ../Hadamard_product_counters etvo.o; \
         fi
 
-all: $(CPP_FILE) $(ETVO_OBJECT)
-	$(CC) $(CFLAGS) $(CPP_FILE) $(ETVO_OBJECT) -o $(PROGRAM)
+all: $(CPP_FILES) $(ETVO_OBJECT) $(HEADER_FILES)
+	$(CC) $(CFLAGS) $(CPP_FILE) $(CPP_FILES) $(ETVO_OBJECT) -o $(PROGRAM)
 
 clean:
 	rm -f $(PROGRAM)
