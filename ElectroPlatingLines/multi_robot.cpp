@@ -44,6 +44,7 @@ struct robot_arm_2
 //   another file where you can aufruf these functions
 //   shared files for things we share. w juan 
 int main() {
+    
     info_products robotarm1;
     robot_arm_1 arm;
     // Initialize the "robot_1_movement_time" member of "arm" with the specified vector of ints
