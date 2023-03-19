@@ -138,16 +138,16 @@ enum class take_deposit {
  * @brief Converts an integer to a Transition object, which can be either an IO enum or a TransitionTank struct.
  *
  * This function takes three parameters: an integer tank_ID representing the numeric input (meaning the tank number),
- * an enum lr indicating, whether it's an input or output transition, and an integer out/last_tank. It maps the numeric input to a Transition
+ * an enum take_or_deposit indicating, whether it's an input or output transition, and an integer out/last_tank. It maps the numeric input to a Transition
  * object based on the tank and whether it's an input or output transition. The function returns a Transition
  * object that can be either an IO (input/output) or a TransitionTank (with a tank index and an IO status).
  *
  * @param tank_ID Integer representing the numeric input. #(where the transitions begin)#
- * @param lr Enum of type lr, where lr::take represents an input transition and lr::deposit represents an output transition.
+ * @param lr Enum of type take_or_deposit, where take_or_deposit::take represents an input transition and lr::deposit represents an output transition.
  * @param out Integer representing the number of output tank.
  * @return Transition object which can be either an IO enum (IO::INPUT or IO::OUTPUT) or a TransitionTank struct.
  */
-Transition t_convert(int tank_ID, take_deposit lr, int last_tank);
+Transition t_convert(int tank_ID, take_deposit take_or_deposit, int last_tank);
 /**
  * @brief Converts an integer to a gd struct.
  *
@@ -186,7 +186,7 @@ std::vector<T> create_vector(T element, int length) {
 
 
  /**
-  * @class Mode
+  * @class RobotMode
   * @brief Represents a mode in a Switched Linear Dual Inequalities (SLDI) model based on a Timed Event Graph (TEG).
   *
   * This class takes information from a P-TEG, such as the tanks used, the transportation/movement time, and the
@@ -203,10 +203,10 @@ std::vector<T> create_vector(T element, int length) {
  * performs validation on the input data and calculates the minimum
  * number of tokens required in each container during the process.
   */
-class Mode {
+class RobotMode {
 public:
     /**
- * @brief Constructs a Mode object.
+ * @brief Constructs a RobotMode object.
  *
  * @param initialTank An integer representing the initial tank.
  *        0 indicates the input tank, and numberOfTanks + 1 indicates the output tank.
@@ -222,7 +222,7 @@ public:
  *         processing times vector has an invalid length, or if the tank number
  *         is greater than the specified number of tanks.
  */
-    Mode(int initialTank, std::vector<std::tuple<int, int>> modeArray, std::vector<int> processingTimes, int numberOfTanks);
+    RobotMode(int initialTank, std::vector<std::tuple<int, int>> modeArray, std::vector<int> processingTimes, int numberOfTanks);
     int getInitialTank() const;
     void setInitialTank(int value);
     vector<tuple<int, int>> getModeArray() const;
@@ -268,8 +268,8 @@ private:
  * modeArray, or if processing times are not found for a given operation.
  */
     void loopOverTupleWithTanksAndTimes();
-    void processTransportation(int index, int previousTank, int currentTank, queue<int>& q);
-    void processMovement(int index, int previousTank, int currentTank);
+    void processTransportation(unsigned int index, unsigned int previousTank, unsigned int currentTank, queue<int>& q);
+    void processMovement(unsigned int index, unsigned int previousTank, unsigned int currentTank);
     void updateContainerRequirements();
     int numOfTanks;
     int initialTank;
@@ -284,17 +284,17 @@ matrix<series> getXfromMatrix(matrix<series>& ms);
 void printSize(matrix<series>& a);
 void printMatrix(matrix<series>& a);
 
-class Schedule {
+class RobotModeCollection {
 public:
     // Constructor
-    /*Schedule(vector<Mode> vMode, vector<vector<int> > mTransTimes)
+    /*RobotModeCollection(vector<RobotMode> vMode, vector<vector<int> > mTransTimes)
         : vMode(vMode)
         , mTransTimes(mTransTimes) {};*/
         /*the mTransTimes is the matrix that represents the switching times between the modes.*/
-    Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>, std::vector<int>>> modes, vector<vector<int>> mTransTimes);
+    RobotModeCollection(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>, std::vector<int>>> modes, vector<vector<int>> mTransTimes);
 
     // Attributes
-    vector<Mode> vMode;
+    vector<RobotMode> vMode;
     vector<vector<int>> mTransTimes;
     //vector<matrix<series>> B_matrices;
     std::unordered_map<tuple<Transition, Transition>, series> A0_matrices;
@@ -316,38 +316,42 @@ public:
 
 private:
     std::unordered_map<tuple<int, int>, std::unordered_map<tuple<Transition, Transition>, int>> A1cache;
-    /**
- * @brief Converts a map of transition pairs and integers to a matrix of series objects.
- *
- * This function creates a matrix of series objects using the given map of transition pairs
- * and integers, and a vector of transitions for indexing. It uses a lambda function to find
- * the index of a transition in the indexT vector.
- *
- * @param indexT A vector of Transition objects, used for indexing.
- * @param Amap An unordered_map containing pairs of Transition objects as keys and integers as values.
- * @return A matrix<series> object, where the elements are series objects created from the input map.
- * @throws std::runtime_error If a Transition couldn't be found in the indexT vector.
- */
-    matrix<series> etvoAMatrix(vector<Transition> indexT, unordered_map<tuple<Transition, Transition>, int> Amap);
-    /**
- * @brief Converts a matrix of series objects to a standard vector of integers.
- *
- * This function iterates through the given matrix of series objects, extracting the
- * integer values from each series object and inserting them into a standard vector.
- * If a series object cannot be converted to an integer, the function throws a runtime_error.
- *
- * @param i A matrix<series> object representing the input matrix of series objects.
- * @return A vector<int> containing the integer values extracted from the input matrix.
- * @throws runtime_error If a series object cannot be converted to an integer.
- */
-    vector<int> etvoVector2stdVector(matrix<series> i);
+   
+   
 
     template <typename T>
     vector<T> readIndexes(vector<int>& L, vector<T>& B);
     template <typename T>
     void writeIndexes(vector<int>& L, vector<T>& B, vector<T> values);
     int getMaxValue(const std::vector<std::tuple<int, std::vector<std::tuple<int, int> >, std::vector<int> > >& vec);
-    /**
+    
+};
+/**
+* @brief Converts a matrix of series objects to a standard vector of integers.
+*
+* This function iterates through the given matrix of series objects, extracting the
+* integer values from each series object and inserting them into a standard vector.
+* If a series object cannot be converted to an integer, the function throws a runtime_error.
+*
+* @param i A matrix<series> object representing the input matrix of series objects.
+* @return A vector<int> containing the integer values extracted from the input matrix.
+* @throws runtime_error If a series object cannot be converted to an integer.
+*/
+vector<int> etvoVector2stdVector(matrix<series> i);
+/**
+* @brief Converts a map of transition pairs and integers to a matrix of series objects.
+*
+* This function creates a matrix of series objects using the given map of transition pairs
+* and integers, and a vector of transitions for indexing. It uses a lambda function to find
+* the index of a transition in the indexT vector.
+*
+* @param indexT A vector of Transition objects, used for indexing.
+* @param Amap An unordered_map containing pairs of Transition objects as keys and integers as values.
+* @return A matrix<series> object, where the elements are series objects created from the input map.
+* @throws std::runtime_error If a Transition couldn't be found in the indexT vector.
+*/
+matrix<series> etvoAMatrix(vector<Transition> indexT, unordered_map<tuple<Transition, Transition>, int> Amap);
+/**
  * @brief Checks if the given matrix is square.
  *
  * This function checks if the given matrix has an equal number of rows and columns.
@@ -355,10 +359,9 @@ private:
  * @param matrix A reference to a vector of vector of integers representing the matrix.
  * @return A boolean value indicating if the matrix is square or not.
  */
-    bool isSquare(vector<vector<int>>& matrix);
-};
+bool isSquare(vector<vector<int>>& matrix);
 template <typename T>
-vector<T> Schedule::readIndexes(vector<int>& L, vector<T>& B)
+vector<T> RobotModeCollection::readIndexes(vector<int>& L, vector<T>& B)
 {
     //cout << "readIndexes, indexes:" << L << " vector:" << B << endl;
     vector<T> result;
@@ -368,7 +371,7 @@ vector<T> Schedule::readIndexes(vector<int>& L, vector<T>& B)
     return result;
 }
 template <typename T>
-void Schedule::writeIndexes(vector<int>& L, vector<T>& B, vector<T> values)
+void RobotModeCollection::writeIndexes(vector<int>& L, vector<T>& B, vector<T> values)
 {
     int index = 0;
     for (auto& i : L) {

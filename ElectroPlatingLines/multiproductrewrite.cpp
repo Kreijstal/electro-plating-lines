@@ -1,9 +1,9 @@
 #include "multi_product_lib.h"
-int main()
+int main()  
 {
     try {
     
-        Schedule a({
+        RobotModeCollection a({
             {1, { { 2, 1 }, { 0, 2 }, { 1, 3 } }, { 10 } },
             {0, { { 1, 1 }, { 1, 2 }, { 2, 3 } }, { 10 } } 
             },
@@ -13,7 +13,6 @@ int main()
         matrix<series> A, B;
         std::tie(A, B) =a.getBigAandBMatrix({0,0});
         matrix<series> Asimilar(2, 2);
-        gd(0, 0) < gd(1, 4);
         //Asimilar(0, 3) = gd(0,2);
         //Asimilar(0, 4) = gd(1, 0);
         //Asimilar(1, 0) = gd(0, 3);
@@ -52,20 +51,8 @@ int main()
         //c(0, 5).canon();
         cout << "now this is A:" << endl << A << "END" << endl;
         cout << "now this is A*:" << endl << c << "END" << endl;
-                /*
-        series asdf = poly::Epsilon();
-        series bsdf = gd(1, 10);
-        series csdf = gd(0, 3);
-        series dsdf = gd(1, 13);
-        cout<<"CONFUSION:"<<asdf.star();
-        //cout <<"HELP " <<((csdf + (dsdf * dsdf.star() * csdf))) << endl;
-        cout << "A*:" << c << endl;
-
-        
-        //cout << "and this is Asimil   ar^8:"<<endl << Asimilarold << endl;
-        //printSize(x);
-        //printSize(B * intVector2MaxPlus({ 0,0 }));
-        //cout<<A.star()* (B * intVector2MaxPlus({ 0,0 }))<<endl;
+                
+        cout<<A.star()* (B * intVector2MaxPlus({ 0,0 }))<<endl;
         /*vector<int> x = a.initialVector();
         x = a.multiplyWithAstarMatrix(a.addB(x, 1), 0);
 //        cout << a.vMode[0].processingTimesQueues << endl;
