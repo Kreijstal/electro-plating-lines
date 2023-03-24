@@ -302,8 +302,9 @@ RobotMode::RobotMode(int initialTank, vector<tuple<int, int> > modeArray, vector
                 auto s = std::make_tuple(t_convert(previousTank, take_deposit::take, numOfTanks + 1),
                     t_convert(previousTank, take_deposit::deposit, numOfTanks + 1));
                 if (A0_matrix.find(s) != A0_matrix.end()) {
-                    cout<<"previousTank"<<previousTank << "g" << A0_matrix[s] << "WHAT" << popped << "  ," << s << endl;
-                    throw std::runtime_error("Attempting to set an already existing place (this is an error with this library itself)");
+                    /*cout << "previousTank" << previousTank << "g" << A0_matrix[s] << "WHAT" << popped << "  ," << s << endl;
+                    throw std::runtime_error("Attempting to set an already existing place (this is an error with this library itself)");*/
+                    A0_matrix[s]=max(A0_matrix[s],popped);
                 }
                 cout << "set processing" << s<<endl;
                 A0_matrix[s] = popped;
@@ -322,8 +323,10 @@ RobotMode::RobotMode(int initialTank, vector<tuple<int, int> > modeArray, vector
 
     void RobotMode::processMovement(unsigned int index, unsigned int previousTank, unsigned int currentTank) {
         // Update A0_matrix with movement time
-        A0_matrix[std::make_tuple(t_convert(currentTank, take_deposit::deposit, numOfTanks + 1),
-            t_convert(previousTank,take_deposit::take, numOfTanks + 1))] =
+        auto ind = std::make_tuple(t_convert(currentTank, take_deposit::take, numOfTanks + 1),
+            t_convert(previousTank, take_deposit::deposit, numOfTanks + 1));
+        cout << "movement " << ind << endl;
+        A0_matrix[ind] =
             std::get<1>(modeArray[index]);
     }
 
@@ -395,7 +398,7 @@ RobotModeCollection::RobotModeCollection(std::vector<std::tuple<int, std::vector
             for (auto& [key, value] : vMode[schedule[i]].A0_matrix) {
                 //cout << "accessing [" << t2i(std::get<0>(key)) << "," << t2i(std::get<1>(key)) << "] " << endl;
                 auto s = std::make_tuple(t2i(std::get<0>(key)), t2i(std::get<1>(key)));
-                cout << "aa " << key << " , " << s << endl;
+                //cout << "aa " << key << " , " << s << endl;
                 std::apply(A, s) = i2gd(value);
             }
             //cout << "loop internalA" << i << endl;
@@ -418,7 +421,7 @@ RobotModeCollection::RobotModeCollection(std::vector<std::tuple<int, std::vector
                     A(I, I + (i * len)) = gd(1, 0);
                 }*/
                 for (auto& [key, value] : getA1(schedule[i], schedule[k])) {
-                    cout << "KEY:" << key <<" t2i(KEY)=("<< t2i(std::get<0>(key))<<","<< t2i(std::get<1>(key)) << ")" << ", converted key: (" << (t2i(std::get<0>(key)) + len) % (len * size) << "," << t2i(std::get<1>(key)) << ") val:" << value << endl;
+                   // cout << "KEY:" << key <<" t2i(KEY)=("<< t2i(std::get<0>(key))<<","<< t2i(std::get<1>(key)) << ")" << ", converted key: (" << (t2i(std::get<0>(key)) + len) % (len * size) << "," << t2i(std::get<1>(key)) << ") val:" << value << endl;
                     auto s=std::make_tuple((t2i(std::get<0>(key)) + len) % (len * size), t2i(std::get<1>(key)));
                     std::apply(A, s) = gd(1, value);
                 }

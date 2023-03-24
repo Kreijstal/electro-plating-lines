@@ -51,7 +51,6 @@ int main()
         //c(0, 5).canon();
         cout << "now this is A:" << endl << A << "END" << endl;
         cout << "now this is A*:" << endl << c << "END" << endl;
-                
         cout<<A.star()* (B * intVector2MaxPlus({ 0,0 }))<<endl;
         /*vector<int> x = a.initialVector();
         x = a.multiplyWithAstarMatrix(a.addB(x, 1), 0);

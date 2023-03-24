@@ -88,8 +88,16 @@ int main() {
     robotarm2.movementTime = arm2.robot_1_movement_time;*/
 
     try {
-        RobotMode my_schedule(0, { {1, 2}, { 2,2 }, {3,5} }, { 3 }, 2);
-        std::cout << my_schedule.A0_matrix;
+        RobotModeCollection f({
+            {0, { { 2, 1 }, { 2, 2 }, { 1, 3 },{1,4},{3,4} }, { 5,6 } } },
+            {{ 7 } });
+        /*RobotModeCollection f2({
+            {0, { { 1, 1 }, { 1, 2 }, { 2, 3 },{2,4},{3,4} }, { 5,6 } } },
+            { { 7 } });*/
+        
+        //std::cout << std::get<0>(f.getBigAandBMatrix({ 0 }));
+        std::cout << f.vMode[0].A0_matrix << endl;
+        //std::cout << f2.getBigAandBMatrix({ 0 });
         
 
     }
