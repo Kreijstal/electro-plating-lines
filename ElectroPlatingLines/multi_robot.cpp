@@ -1,4 +1,4 @@
-#include "ElectroPlatingLines.h"
+//#include "ElectroPlatingLines.h"
 #include "multi_product_lib.h"
 #include <iostream>
 #include <exception>
@@ -86,6 +86,8 @@ int main() {
     robotarm2.processingTime = arm2.robot_1_processing_time;
     robotarm2.transportationTime = arm2.robot_1_transport_time;
     robotarm2.movementTime = arm2.robot_1_movement_time;*/
+
+    //TODO : (not done), modify 'Mode's name, its OK as int and not series
 
     try {
         Mode my_schedule(0, { {1, 2}, { 2,2 }, {3,5} }, { 3 }, 2);
