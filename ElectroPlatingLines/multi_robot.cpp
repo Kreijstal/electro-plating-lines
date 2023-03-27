@@ -10,7 +10,6 @@
 #include <cinttypes>
 #include <cstddef>
 #include <numeric>
-
 // Define a struct named "robot_arm_1" that represents a robot arm
 
 //use these structs!! to represent the shared place!
@@ -30,11 +29,30 @@ struct robot_arm //TO DO: merge the robot arm structs , one struct for all the r
 
 struct shared_tank
 {
-// 
-
+    int time;
+    unsigned int places;//For now we only support 0 or 1.
 };
+typedef std::tuple<std::vector<mode>, std::vector<std::vector<int>>> schedule;
 
+class RobotOrchestra
+{
+public:
+    std::vector<shared_tank> shared_tanks;
+    std::vector<RobotSchedule> vecRobotModeCollection;
 
+    // Constructor for RobotOrchestra
+    RobotOrchestra(
+        std::vector<shared_tank> tanks,
+        std::vector<schedule> schedules
+        ): shared_tanks(tanks)
+    {
+        for (const auto& [mode, mTransTimes] : schedules)
+        {
+            vecRobotModeCollection.emplace_back(mode, mTransTimes);
+        }
+    }
+};
+//RobotSchedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>, std::vector<int>>> modes, vector<vector<int>> mTransTimes);
 // Create an instance of the "robot_arm_1" struct named "arm"
 // 18. November 2022 Freitag. EN Gebaeude //
 //switched max plus, define matrices. a for product a, b for product b. once u have them u can combine them. problem is getting the matrices. 
@@ -63,43 +81,17 @@ struct shared_tank
 //   shared files for things we share. w juan 
 int main() {
     
-   /* info_products robotarm1;
-    robot_arm arm1;
-    // Initialize the "robot_1_movement_time" member of "arm" with the specified vector of ints
-    arm.robot_1_movement_time = { 1,2,3 };
-    arm.robot_1_transport_time = { 4,5,6 };
-    arm.robot_1_processing_time = { 7,8,9 };
-    arm.robot_1_route = { {0,2},{2,1},{1,3} };
-    robotarm1.route = arm.robot_1_route;
-    robotarm1.processingTime= arm.robot_1_processing_time;
-    robotarm1.transportationTime = arm.robot_1_transport_time;
-    robotarm1.movementTime = arm.robot_1_movement_time;
-    
-
-    info_products robotarm2;
-    robot_arm arm2;
-    arm2.robot_2_movement_time = { 2, 3, 1, 5 };
-    arm2.robot_2_transport_time = { 1, 2, 3, 4 };
-    arm2.robot_2_processing_time = { 5, 4, 3, 2 };
-    arm2.robot_2_route = { {3,5},{5,4},{4,6} };
-    robotarm2.route = arm2.robot_1_route;
-    robotarm2.processingTime = arm2.robot_1_processing_time;
-    robotarm2.transportationTime = arm2.robot_1_transport_time;
-    robotarm2.movementTime = arm2.robot_1_movement_time;*/
-
     try {
-        RobotModeCollection f({
+        schedule robot1{ {
             {0, { { 2, 1 }, { 2, 2 }, { 1, 3 },{1,4},{3,4} }, { 5,6 } } },
-            {{ 7 } });
-        /*RobotModeCollection f2({
+            { { 7 } } };
+        schedule robot2{ {
             {0, { { 1, 1 }, { 1, 2 }, { 2, 3 },{2,4},{3,4} }, { 5,6 } } },
-            { { 7 } });*/
-        
-        //std::cout << std::get<0>(f.getBigAandBMatrix({ 0 }));
-        std::cout << f.vMode[0].A0_matrix << endl;
-        //std::cout << f2.getBigAandBMatrix({ 0 });
-        
-
+            { { 7 } } };
+        std::vector<shared_tank> tanks = {
+        {1, 0} };
+        RobotOrchestra(tanks, { robot1,robot2 });
+           
     }
     catch (std::exception& e) {
         std::cerr << endl
