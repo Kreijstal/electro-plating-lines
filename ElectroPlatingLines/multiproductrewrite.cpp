@@ -3,7 +3,7 @@ int main()
 {
     try {
     
-        RobotModeCollection a({
+        RobotSchedule a({
             {1, { { 2, 1 }, { 0, 2 }, { 1, 3 } }, { 10 } },
             {0, { { 1, 1 }, { 1, 2 }, { 2, 3 } }, { 10 } } 
             },

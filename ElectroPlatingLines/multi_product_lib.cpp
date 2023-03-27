@@ -277,7 +277,7 @@ RobotMode::RobotMode(int initialTank, vector<tuple<int, int> > modeArray, vector
         // Update A0_matrix with transportation time
         auto s = std::make_tuple(t_convert(currentTank, take_deposit::deposit , numOfTanks + 1),
             t_convert(previousTank, take_deposit::take, numOfTanks + 1));
-        cout << "set transport" << s << "thingy" << modeArray[index] << endl;
+        //cout << "set transport" << s << "thingy" << modeArray[index] << endl;
         A0_matrix[s] =
             std::get<1>(modeArray[index]);
 
@@ -306,7 +306,7 @@ RobotMode::RobotMode(int initialTank, vector<tuple<int, int> > modeArray, vector
                     throw std::runtime_error("Attempting to set an already existing place (this is an error with this library itself)");*/
                     A0_matrix[s]=max(A0_matrix[s],popped);
                 }
-                cout << "set processing" << s<<endl;
+                //cout << "set processing" << s<<endl;
                 A0_matrix[s] = popped;
             }
         }
@@ -325,7 +325,7 @@ RobotMode::RobotMode(int initialTank, vector<tuple<int, int> > modeArray, vector
         // Update A0_matrix with movement time
         auto ind = std::make_tuple(t_convert(currentTank, take_deposit::take, numOfTanks + 1),
             t_convert(previousTank, take_deposit::deposit, numOfTanks + 1));
-        cout << "movement " << ind << endl;
+       // cout << "movement " << ind << endl;
         A0_matrix[ind] =
             std::get<1>(modeArray[index]);
     }
@@ -350,7 +350,7 @@ matrix<series> intVector2MaxPlus(vector<int> i)
 }
 
 
-RobotModeCollection::RobotModeCollection(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>, std::vector<int>>> modes, vector<vector<int>> mTransTimes)
+RobotSchedule::RobotSchedule(std::vector<mode> modes, vector<vector<int>> mTransTimes)
         : mTransTimes(mTransTimes)
     {
         if (!(isSquare(mTransTimes) && mTransTimes.size() == modes.size()))
@@ -368,7 +368,7 @@ RobotModeCollection::RobotModeCollection(std::vector<std::tuple<int, std::vector
     };
 
    
-    vector<int> RobotModeCollection::initialVector()
+    vector<int> RobotSchedule::initialVector()
     {
         vector<int> a;
         a.resize((numOfTanks + 1) * 2);
@@ -376,13 +376,13 @@ RobotModeCollection::RobotModeCollection(std::vector<std::tuple<int, std::vector
         std::fill(a.begin(), a.end(), _infinit);
         return a;
     }
-    vector<int> RobotModeCollection::addB(vector<int> in, int mode) {
+    vector<int> RobotSchedule::addB(vector<int> in, int mode) {
         //we do the dumb case and just edit the input to transition to fire at the output transition
             //int i=getMatrixIndex(t_convert(vMode[mode].getInitialTank(), take_or_deposit::right, numOfTanks + 1), (numOfTanks + 1)*2);
         in[0] = max(in[0], 0);
         return in;
     }
-    std::tuple<matrix<series>, matrix<series>> RobotModeCollection::getBigAandBMatrix(vector<int> schedule) {
+    std::tuple<matrix<series>, matrix<series>> RobotSchedule::getBigAandBMatrix(vector<int> schedule) {
         unsigned int size = schedule.size();
         int len = (numOfTanks + 1) * 2;
         matrix<series> A(len * size, len * size);
@@ -454,7 +454,7 @@ RobotModeCollection::RobotModeCollection(std::vector<std::tuple<int, std::vector
         }
         return allValues;
     }
-    std::unordered_map<tuple<Transition, Transition>, int> RobotModeCollection::getA1(int prevMode, int currMode) {
+    std::unordered_map<tuple<Transition, Transition>, int> RobotSchedule::getA1(int prevMode, int currMode) {
         auto tup = std::make_tuple(prevMode, currMode);
         if (A1cache.find(tup) == A1cache.end()) {
             std::unordered_map<tuple<Transition, Transition>, int> A1_matrix;
@@ -517,7 +517,7 @@ RobotModeCollection::RobotModeCollection(std::vector<std::tuple<int, std::vector
             return A1cache[tup];
         }
     }
-    vector<int> RobotModeCollection::multiplyWithA1(vector<int> transitions, int prevMode, int currMode) {
+    vector<int> RobotSchedule::multiplyWithA1(vector<int> transitions, int prevMode, int currMode) {
         //Here we need to take queues that are not empty!
         //define the a1 matrix;
         std::unordered_map<tuple<Transition, Transition>, int> A1_matrix;
@@ -598,7 +598,7 @@ RobotModeCollection::RobotModeCollection(std::vector<std::tuple<int, std::vector
         return transitions;
     }
 
-    vector<int> RobotModeCollection::multiplyWithAstarMatrix(vector<int> transitions, int mode)
+    vector<int> RobotSchedule::multiplyWithAstarMatrix(vector<int> transitions, int mode)
     {
         //optimization try to figure out the pertaining transitions..
         //only makes sense to do square matrix.
@@ -669,7 +669,7 @@ RobotModeCollection::RobotModeCollection(std::vector<std::tuple<int, std::vector
     }
 
     
-    int RobotModeCollection::getMaxValue(const std::vector<std::tuple<int, std::vector<std::tuple<int, int> >, std::vector<int> > >& vec)
+    int RobotSchedule::getMaxValue(const std::vector<std::tuple<int, std::vector<std::tuple<int, int> >, std::vector<int> > >& vec)
     {
         int maxValue = 0;
 

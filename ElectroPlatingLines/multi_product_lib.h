@@ -284,14 +284,15 @@ matrix<series> getXfromMatrix(matrix<series>& ms);
 void printSize(matrix<series>& a);
 void printMatrix(matrix<series>& a);
 
-class RobotModeCollection {
+typedef std::tuple<int, std::vector<std::tuple<int, int>>, std::vector<int>> mode;
+class RobotSchedule {
 public:
     // Constructor
-    /*RobotModeCollection(vector<RobotMode> vMode, vector<vector<int> > mTransTimes)
+    /*RobotSchedule(vector<RobotMode> vMode, vector<vector<int> > mTransTimes)
         : vMode(vMode)
         , mTransTimes(mTransTimes) {};*/
         /*the mTransTimes is the matrix that represents the switching times between the modes.*/
-    RobotModeCollection(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>, std::vector<int>>> modes, vector<vector<int>> mTransTimes);
+    RobotSchedule(std::vector<mode> modes, vector<vector<int>> mTransTimes);
 
     // Attributes
     vector<RobotMode> vMode;
@@ -323,7 +324,7 @@ private:
     vector<T> readIndexes(vector<int>& L, vector<T>& B);
     template <typename T>
     void writeIndexes(vector<int>& L, vector<T>& B, vector<T> values);
-    int getMaxValue(const std::vector<std::tuple<int, std::vector<std::tuple<int, int> >, std::vector<int> > >& vec);
+    int getMaxValue(const std::vector<mode>& vec);
     
 };
 /**
@@ -361,7 +362,7 @@ matrix<series> etvoAMatrix(vector<Transition> indexT, unordered_map<tuple<Transi
  */
 bool isSquare(vector<vector<int>>& matrix);
 template <typename T>
-vector<T> RobotModeCollection::readIndexes(vector<int>& L, vector<T>& B)
+vector<T> RobotSchedule::readIndexes(vector<int>& L, vector<T>& B)
 {
     //cout << "readIndexes, indexes:" << L << " vector:" << B << endl;
     vector<T> result;
@@ -371,7 +372,7 @@ vector<T> RobotModeCollection::readIndexes(vector<int>& L, vector<T>& B)
     return result;
 }
 template <typename T>
-void RobotModeCollection::writeIndexes(vector<int>& L, vector<T>& B, vector<T> values)
+void RobotSchedule::writeIndexes(vector<int>& L, vector<T>& B, vector<T> values)
 {
     int index = 0;
     for (auto& i : L) {
