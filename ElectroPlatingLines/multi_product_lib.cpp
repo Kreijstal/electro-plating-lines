@@ -235,7 +235,7 @@ RobotMode::RobotMode(int initialTank, vector<tuple<int, int> > modeArray, vector
         }
         //cout << (processingTimes.size() + lastCount) * 2 - 1 << "=" << modeArray.size() << endl;
         if ((processingTimes.size() + lastCount) * 2 - 1 != modeArray.size()) {
-            throw std::invalid_argument("processingTimes must have a valid length (there is 1/2 as many processing times as transitions)");
+            throw std::invalid_argument("processingTimes must have a valid length, equal to half the number of transitions, excluding output transitions");
         }
     }
 
@@ -354,7 +354,7 @@ RobotSchedule::RobotSchedule(std::vector<mode> modes, vector<vector<int>> mTrans
         : mTransTimes(mTransTimes)
     {
         if (!(isSquare(mTransTimes) && mTransTimes.size() == modes.size()))
-            throw std::invalid_argument("processingTimes must have a valid length (there is 1/2 as many processing times as transitions)");
+            throw std::invalid_argument("mTransTimes should be a square matrix.");
         int n = getMaxValue(modes) - 1;
         numOfTanks = n;
         std::transform(modes.begin(), modes.end(), std::back_inserter(vMode), [n](const auto& t) {
