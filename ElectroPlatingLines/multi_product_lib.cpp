@@ -79,70 +79,7 @@ std::ostream& operator<<(std::ostream& out, const TransitionMode& mode)
   os << "(" << std::get<0>(t) << ", " << std::get<1>(t) << ")";
   return os;
   }*/
-template <typename... Args>
-std::ostream& operator<<(std::ostream& os, const std::tuple<Args...>& t)
-{
-    os << "(";
-    std::apply([&os](const auto&... args) {
-        ((os << args << ", "), ...);
-        }, t);
-    os << "\b\b)";
-    return os;
-}
 
-template <typename T>
-std::ostream& operator<<(std::ostream& out,
-    const std::vector<T>& vec)
-{
-    out << "[";
-    bool first = true;
-    for (const auto& item : vec) {
-        if (!first) {
-            out << ", ";
-        }
-        out << item;
-        first = false;
-    }
-    out << "] ";
-    return out;
-}
-
-template <typename Key, typename Value>
-std::ostream& operator<<(std::ostream& out,
-    const std::unordered_map<Key, Value>& map)
-{
-    out << "{" << std::endl;
-    for (const auto& item : map) {
-        out << "  " << item.first << ": " << item.second << std::endl;
-    }
-    out << "}" << std::endl;
-    return out;
-}
-
-template <typename T>
-std::ostream& operator<<(std::ostream& out,
-    const std::queue<T>& q)
-{
-    std::queue<T> temp(q);
-    out << "Queue: [";
-    bool first = true;
-    while (!temp.empty()) {
-        if (!first) {
-            out << ", ";
-        }
-        first = false;
-        out << temp.front();
-        temp.pop();
-    }
-    out << "]";
-    return out;
-}
-template<typename T1, typename T2>
-std::ostream& operator<<(std::ostream& os, const std::pair<T1, T2>& p)
-{
-    os << "(" << p.first << ", " << p.second << ")";
-    return os;
-}
 /**
  * @brief Get the matrix index for a given Transition object and matrix length.
  *
@@ -186,13 +123,13 @@ int getMatrixIndex(Transition t, int matrixlength)
 
 
 Transition
-t_convert(int p, take_deposit lr, int out)
+t_convert(int tank_ID, take_deposit take_or_deposit, int out)
 {
-    if (p == 0)
+    if (tank_ID == 0)
         return IO::INPUT;
-    if (p == out)
+    if (tank_ID == out)
         return IO::OUTPUT;
-    return TransitionTank{ p - 1, lr == take_deposit::take ? IO::INPUT : IO::OUTPUT };
+    return TransitionTank{ tank_ID - 1, take_or_deposit == take_deposit::take ? IO::OUTPUT : IO::INPUT };
 }
 
 gd i2gd(int a)
@@ -238,21 +175,14 @@ matrix<series> stackMatricesDiagonally(vector<matrix<series>> vms) {
     return A;
 }
 
-template <typename T>
-std::vector<T> create_vector(T element, int length) {
-    // create an empty vector of size length
-    std::vector<T> vec(length);
-    // fill the vector with element
-    std::fill(vec.begin(), vec.end(), element);
-    return vec;
-}
+
 
 
     // Constructor
     //let initialTank=0 be input tank and initialTank=numberOfTanks+1 the output Tank
     //A modeArray is a vector of tuples where the first element is the Tank as a number, where 0 is the input tank and numberOfTanks+1 is the output tank.
     //And the second element is either the transportation or movement time.
-Mode::Mode(int initialTank, vector<tuple<int, int> > modeArray, vector<int> processingTimes, int numberOfTanks)
+RobotMode::RobotMode(int initialTank, vector<tuple<int, int> > modeArray, vector<int> processingTimes, int numberOfTanks)
         : initialTank(initialTank)
         , modeArray(modeArray)
         , processingTimes(processingTimes)
@@ -270,30 +200,30 @@ Mode::Mode(int initialTank, vector<tuple<int, int> > modeArray, vector<int> proc
     }
 
     // Getters and settersvector
-    int Mode::getInitialTank() const { return initialTank; }
-    void Mode::setInitialTank(int value) { initialTank = value; }
+    int RobotMode::getInitialTank() const { return initialTank; }
+    void RobotMode::setInitialTank(int value) { initialTank = value; }
 
-    vector<tuple<int, int>> Mode::getModeArray() const { return modeArray; }
-    void Mode::setModeArray(vector<tuple<int, int> > value)
+    vector<tuple<int, int>> RobotMode::getModeArray() const { return modeArray; }
+    void RobotMode::setModeArray(vector<tuple<int, int> > value)
     {
         modeArray = value;
         update();
     }
 
-    vector<int> Mode::getProcessingTimes() const { return processingTimes; }
-    void Mode::setProcessingTimes(vector<int> value)
+    vector<int> RobotMode::getProcessingTimes() const { return processingTimes; }
+    void RobotMode::setProcessingTimes(vector<int> value)
     {
         processingTimes = value;
         update();
     }
-    void Mode::update()
+    void RobotMode::update()
     {
         //initialTank
         //modeArray
         validate();
     }
     // Validation
-    void Mode::validate()
+    void RobotMode::validate()
     {
         if (modeArray.size() % 2 == 0) {
             throw std::invalid_argument("modeArray must have an odd length");
@@ -305,20 +235,20 @@ Mode::Mode(int initialTank, vector<tuple<int, int> > modeArray, vector<int> proc
         }
         //cout << (processingTimes.size() + lastCount) * 2 - 1 << "=" << modeArray.size() << endl;
         if ((processingTimes.size() + lastCount) * 2 - 1 != modeArray.size()) {
-            throw std::invalid_argument("processingTimes must have a valid length (there is 1/2 as many processing times as transitions)");
+            throw std::invalid_argument("processingTimes must have a valid length, equal to half the number of transitions, excluding output transitions");
         }
     }
 
-    void Mode::loopOverTupleWithTanksAndTimes() {
+    void RobotMode::loopOverTupleWithTanksAndTimes() {
         processingTimesQueues.clear();
         processingTimesQueues.resize(numOfTanks);
         queue<int> q;
         for (auto& i : processingTimes) {
             q.push(i);
         }
-        for (int index = 0; index < modeArray.size(); ++index) {
-            int previousTank;
-            int currentTank = std::get<0>(modeArray[index]);
+        for (unsigned int index = 0; index < modeArray.size(); ++index) {
+            unsigned int previousTank;
+            unsigned int currentTank = std::get<0>(modeArray[index]);
             if (index == modeArray.size() - 1) {
                 lastTank = currentTank;
             }
@@ -342,10 +272,13 @@ Mode::Mode(int initialTank, vector<tuple<int, int> > modeArray, vector<int> proc
         updateContainerRequirements();
     }
 
-    void Mode::processTransportation(int index, int previousTank, int currentTank, queue<int>& q) {
+    void RobotMode::processTransportation(unsigned int index, unsigned int previousTank, unsigned int currentTank, queue<int>& q) {
+        //We know index is always even
         // Update A0_matrix with transportation time
-        A0_matrix[std::make_tuple(t_convert(currentTank, IS_EVEN(index) ? take_deposit::take : take_deposit::deposit, numOfTanks + 1),
-            t_convert(previousTank, IS_EVEN(index) ? take_deposit::deposit : take_deposit::take, numOfTanks + 1))] =
+        auto s = std::make_tuple(t_convert(currentTank, take_deposit::deposit , numOfTanks + 1),
+            t_convert(previousTank, take_deposit::take, numOfTanks + 1));
+        //cout << "set transport" << s << "thingy" << modeArray[index] << endl;
+        A0_matrix[s] =
             std::get<1>(modeArray[index]);
 
         if (previousTank == numOfTanks + 1)
@@ -363,10 +296,18 @@ Mode::Mode(int initialTank, vector<tuple<int, int> > modeArray, vector<int> proc
                 cout << "processing time not found." << endl;
             }
             else {
+                //Get the next value from the processing time vector
                 popped = processingTimesQueues[previousTank - 1].front();
                 processingTimesQueues[previousTank - 1].pop();
-                A0_matrix[std::make_tuple(t_convert(previousTank, take_deposit::deposit, numOfTanks + 1),
-                    t_convert(previousTank, take_deposit::take, numOfTanks + 1))] = popped;
+                auto s = std::make_tuple(t_convert(previousTank, take_deposit::take, numOfTanks + 1),
+                    t_convert(previousTank, take_deposit::deposit, numOfTanks + 1));
+                if (A0_matrix.find(s) != A0_matrix.end()) {
+                    /*cout << "previousTank" << previousTank << "g" << A0_matrix[s] << "WHAT" << popped << "  ," << s << endl;
+                    throw std::runtime_error("Attempting to set an already existing place (this is an error with this library itself)");*/
+                    A0_matrix[s]=max(A0_matrix[s],popped);
+                }
+                //cout << "set processing" << s<<endl;
+                A0_matrix[s] = popped;
             }
         }
 
@@ -380,15 +321,17 @@ Mode::Mode(int initialTank, vector<tuple<int, int> > modeArray, vector<int> proc
         }
     }
 
-    void Mode::processMovement(int index, int previousTank, int currentTank) {
+    void RobotMode::processMovement(unsigned int index, unsigned int previousTank, unsigned int currentTank) {
         // Update A0_matrix with movement time
-        A0_matrix[std::make_tuple(t_convert(currentTank, IS_EVEN(index) ? take_deposit::take : take_deposit::deposit, numOfTanks + 1),
-            t_convert(previousTank, IS_EVEN(index) ? take_deposit::deposit : take_deposit::take, numOfTanks + 1))] =
+        auto ind = std::make_tuple(t_convert(currentTank, take_deposit::take, numOfTanks + 1),
+            t_convert(previousTank, take_deposit::deposit, numOfTanks + 1));
+       // cout << "movement " << ind << endl;
+        A0_matrix[ind] =
             std::get<1>(modeArray[index]);
     }
 
-    void Mode::updateContainerRequirements() {
-        for (int i = 0; i < finalContainersTokenCount.size(); i++) {
+    void RobotMode::updateContainerRequirements() {
+        for (unsigned int i = 0; i < finalContainersTokenCount.size(); i++) {
             countainerRequirements[i] = -min(-countainerRequirements[i], finalContainersTokenCount[i]);
         }
     }
@@ -407,11 +350,11 @@ matrix<series> intVector2MaxPlus(vector<int> i)
 }
 
 
-Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>, std::vector<int>>> modes, vector<vector<int>> mTransTimes)
+RobotSchedule::RobotSchedule(std::vector<mode> modes, vector<vector<int>> mTransTimes)
         : mTransTimes(mTransTimes)
     {
         if (!(isSquare(mTransTimes) && mTransTimes.size() == modes.size()))
-            throw std::invalid_argument("processingTimes must have a valid length (there is 1/2 as many processing times as transitions)");
+            throw std::invalid_argument("mTransTimes should be a square matrix.");
         int n = getMaxValue(modes) - 1;
         numOfTanks = n;
         std::transform(modes.begin(), modes.end(), std::back_inserter(vMode), [n](const auto& t) {
@@ -419,13 +362,13 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
             std::vector<std::tuple<int, int> > modeArray;
             std::vector<int> processingTimes;
             std::tie(initialTank, modeArray, processingTimes) = t;
-            //cout << "Mode creation" << endl;
-            return Mode(initialTank, modeArray, processingTimes, n);
+            //cout << "RobotMode creation" << endl;
+            return RobotMode(initialTank, modeArray, processingTimes, n);
             });
     };
 
    
-    vector<int> Schedule::initialVector()
+    vector<int> RobotSchedule::initialVector()
     {
         vector<int> a;
         a.resize((numOfTanks + 1) * 2);
@@ -433,13 +376,13 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
         std::fill(a.begin(), a.end(), _infinit);
         return a;
     }
-    vector<int> Schedule::addB(vector<int> in, int mode) {
+    vector<int> RobotSchedule::addB(vector<int> in, int mode) {
         //we do the dumb case and just edit the input to transition to fire at the output transition
-            //int i=getMatrixIndex(t_convert(vMode[mode].getInitialTank(), lr::right, numOfTanks + 1), (numOfTanks + 1)*2);
+            //int i=getMatrixIndex(t_convert(vMode[mode].getInitialTank(), take_or_deposit::right, numOfTanks + 1), (numOfTanks + 1)*2);
         in[0] = max(in[0], 0);
         return in;
     }
-    std::tuple<matrix<series>, matrix<series>> Schedule::getBigAandBMatrix(vector<int> schedule) {
+    std::tuple<matrix<series>, matrix<series>> RobotSchedule::getBigAandBMatrix(vector<int> schedule) {
         unsigned int size = schedule.size();
         int len = (numOfTanks + 1) * 2;
         matrix<series> A(len * size, len * size);
@@ -454,7 +397,9 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
             };
             for (auto& [key, value] : vMode[schedule[i]].A0_matrix) {
                 //cout << "accessing [" << t2i(std::get<0>(key)) << "," << t2i(std::get<1>(key)) << "] " << endl;
-                A(t2i(std::get<0>(key)), t2i(std::get<1>(key))) = i2gd(value);
+                auto s = std::make_tuple(t2i(std::get<0>(key)), t2i(std::get<1>(key)));
+                //cout << "aa " << key << " , " << s << endl;
+                std::apply(A, s) = i2gd(value);
             }
             //cout << "loop internalA" << i << endl;
             if (k != 0) {
@@ -472,12 +417,13 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
             }
             else {
                 //cout << "loop internalB" << i << endl;
-                for (int I = 0;I < len;I++) {
+                /*for (int I = 0;I < len;I++) {
                     A(I, I + (i * len)) = gd(1, 0);
-                }
+                }*/
                 for (auto& [key, value] : getA1(schedule[i], schedule[k])) {
-                    cout << "KEY:" << key << ", converted key: (" << (t2i(std::get<0>(key)) + len) % (len + size) << "," << t2i(std::get<1>(key)) << ") val:" << value << endl;
-                    A((t2i(std::get<0>(key)) + len) % (len + size), t2i(std::get<1>(key))) = gd(1, value);
+                   // cout << "KEY:" << key <<" t2i(KEY)=("<< t2i(std::get<0>(key))<<","<< t2i(std::get<1>(key)) << ")" << ", converted key: (" << (t2i(std::get<0>(key)) + len) % (len * size) << "," << t2i(std::get<1>(key)) << ") val:" << value << endl;
+                    auto s=std::make_tuple((t2i(std::get<0>(key)) + len) % (len * size), t2i(std::get<1>(key)));
+                    std::apply(A, s) = gd(1, value);
                 }
 
             }
@@ -508,14 +454,14 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
         }
         return allValues;
     }
-    std::unordered_map<tuple<Transition, Transition>, int> Schedule::getA1(int prevMode, int currMode) {
+    std::unordered_map<tuple<Transition, Transition>, int> RobotSchedule::getA1(int prevMode, int currMode) {
         auto tup = std::make_tuple(prevMode, currMode);
         if (A1cache.find(tup) == A1cache.end()) {
             std::unordered_map<tuple<Transition, Transition>, int> A1_matrix;
             //in order to create A1 we need to take care of three cases
             //case 1 when going from last tank in previous mode to first tank in current mode
-            auto tofrom = std::make_tuple(t_convert(vMode[currMode].getInitialTank(), take_deposit::deposit, numOfTanks + 1),
-                t_convert(vMode[prevMode].lastTank, take_deposit::take, numOfTanks + 1));
+            auto tofrom = std::make_tuple(t_convert(vMode[currMode].getInitialTank(), take_deposit::take, numOfTanks + 1),
+                t_convert(vMode[prevMode].lastTank, take_deposit::deposit, numOfTanks + 1));
             cout << "from last tank 1st mode to 1st tank second mode:" <<
                 tofrom << endl;
             A1_matrix[tofrom] = (mTransTimes[currMode][prevMode]);
@@ -524,7 +470,15 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
             vector<Transition> allValues = getAllTransitionsFromHashmap(A1_matrix);
 
             for (const auto& av : allValues) {//diagonal
-                A1_matrix[std::make_tuple(av, av)] = (0);
+                auto s = std::make_tuple(av, av);
+                if (A1_matrix.find(s) == A1_matrix.end()) {
+
+                    A1_matrix[s] = 0;
+                }
+                else {
+                    A1_matrix[s] = max(A1_matrix[s], 0);
+                }
+                
             }
 
             //case 2 passing pieces that are "leftovers"
@@ -541,8 +495,10 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
                 if (copiedQueue.size() > 1)
                     throw std::runtime_error("Output of previous Mode has more than 1 piece in a tank");
                 else if (copiedQueue.size() == 1) {
-                    auto s = std::make_tuple(t_convert(i + 1, take_deposit::deposit, numOfTanks + 1),
-                        t_convert(i + 1, take_deposit::take, numOfTanks + 1));
+                    auto s = std::make_tuple(t_convert(i + 1, take_deposit::take, numOfTanks + 1),
+                        t_convert(i + 1, take_deposit::deposit, numOfTanks + 1));
+                    cout << "From To " <<
+                        s << endl;
                     if (A1_matrix.find(s) == A1_matrix.end()) {
 
                         A1_matrix[s] = (copiedQueue.front());
@@ -561,7 +517,7 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
             return A1cache[tup];
         }
     }
-    vector<int> Schedule::multiplyWithA1(vector<int> transitions, int prevMode, int currMode) {
+    vector<int> RobotSchedule::multiplyWithA1(vector<int> transitions, int prevMode, int currMode) {
         //Here we need to take queues that are not empty!
         //define the a1 matrix;
         std::unordered_map<tuple<Transition, Transition>, int> A1_matrix;
@@ -642,7 +598,7 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
         return transitions;
     }
 
-    vector<int> Schedule::multiplyWithAstarMatrix(vector<int> transitions, int mode)
+    vector<int> RobotSchedule::multiplyWithAstarMatrix(vector<int> transitions, int mode)
     {
         //optimization try to figure out the pertaining transitions..
         //only makes sense to do square matrix.
@@ -651,7 +607,7 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
             std::string errorMessage = "number of transitions does not match with Schedule, it should have at least " + std::to_string(matrixlength) + " transitions. Transitions vector is instead " + std::to_string(transitions.size()) + ".";
             throw std::invalid_argument(errorMessage);
         }
-        Mode mobj = vMode[mode];
+        RobotMode mobj = vMode[mode];
         vector<Transition> allValues; //list of used transitions
         {
             unordered_set<Transition> seen;
@@ -681,7 +637,7 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
         return transitions;
     }
     
-    matrix<series> Schedule::etvoAMatrix(vector<Transition> indexT, unordered_map<tuple<Transition, Transition>, int> Amap)
+    matrix<series> etvoAMatrix(vector<Transition> indexT, unordered_map<tuple<Transition, Transition>, int> Amap)
     {
         auto t2i = [indexT](Transition t) -> int {
             auto it = find(indexT.begin(), indexT.end(), t);
@@ -699,7 +655,7 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
         return A;
     }
     
-    vector<int> Schedule::etvoVector2stdVector(matrix<series> i)
+    vector<int> etvoVector2stdVector(matrix<series> i)
     {
         vector<int> a;//out(1, i.size());
         int size = i.GetRow();
@@ -712,25 +668,8 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
         return a;
     }
 
-    template <typename T>
-    vector<T> Schedule::readIndexes(vector<int>& L, vector<T>& B)
-    {
-        //cout << "readIndexes, indexes:" << L << " vector:" << B << endl;
-        vector<T> result;
-        for (auto index : L) {
-            result.push_back(B[index]);
-        }
-        return result;
-    }
-    template <typename T>
-    void Schedule::writeIndexes(vector<int>& L, vector<T>& B, vector<T> values)
-    {
-        int index = 0;
-        for (auto& i : L) {
-            B[i] = values[index++];
-        }
-    }
-    int Schedule::getMaxValue(const std::vector<std::tuple<int, std::vector<std::tuple<int, int> >, std::vector<int> > >& vec)
+    
+    int RobotSchedule::getMaxValue(const std::vector<std::tuple<int, std::vector<std::tuple<int, int> >, std::vector<int> > >& vec)
     {
         int maxValue = 0;
 
@@ -750,7 +689,7 @@ Schedule::Schedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>
 
         return maxValue;
     }
-    bool Schedule::isSquare(vector<vector<int>>& matrix)
+    bool isSquare(vector<vector<int>>& matrix)
     {
         int n = matrix.size();
         for (int i = 0; i < n; i++) {
