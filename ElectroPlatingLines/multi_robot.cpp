@@ -92,6 +92,14 @@ int main() {
         {1, 0} };
         RobotOrchestra(tanks, { robot1,robot2 });
            
+        RobotOrchestra d(tanks, { robot1,robot2 });
+        std::vector<matrix<series>> result;
+
+        for (auto& item : d.vecRobotModeCollection) {
+            result.push_back(std::get<0>(item.getBigAandBMatrix({ 0 })));
+        }
+
+        cout << result << endl;
     }
     catch (std::exception& e) {
         std::cerr << endl
@@ -99,7 +107,7 @@ int main() {
             << "error message:" << e.what() << endl;
         return 1;
     }
- 
+    
     return 0;
 }
 
