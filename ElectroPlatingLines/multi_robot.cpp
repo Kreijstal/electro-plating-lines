@@ -10,15 +10,14 @@
 #include <cinttypes>
 #include <cstddef>
 #include <numeric>
-// Define a struct named "robot_arm_1" that represents a robot arm
 
-//use these structs!! to represent the shared place!
-struct robot_arm //TO DO: merge the robot arm structs , one struct for all the robot arms
-{    // Define a member named "robot_1_movement_time" that is a vector of ints
-    std::vector<int> robot_movement_time;
-    std::vector<int> robot_transport_time;
-    std::vector<int> robot_processing_time;
-    std::vector<tuple<int,int>> robot_route;
+
+struct robot_arm //merged the robot arm struct (can take unendless amount of robot arm information instead of one struct for all the robot arms
+{    
+    std::vector<int> robot_movement_time;  //robot movement times without carrying a piece
+    std::vector<int> robot_transport_time;  //robot movement times with carrying piece
+    std::vector<int> robot_processing_time;  //
+    std::vector<tuple<int,int>> robot_route;  //
 };
 
 //RobotMode(int initialTank, std::vector<std::tuple<int, int>> modeArray, std::vector<int> processingTimes, int numberOfTanks);
@@ -27,9 +26,9 @@ struct robot_arm //TO DO: merge the robot arm structs , one struct for all the r
 //RobotMode(int initialTank, std::vector<std::tuple<int, int>> modeArray, std::vector<int> processingTimes, int numberOfTanks);
 //initialTank
 
-struct shared_tank
+struct shared_tank //struct to represent limited amount of shared tanks
 {
-    int time;
+    int time; 
     unsigned int places;//For now we only support 0 or 1.
 };
 typedef std::tuple<std::vector<mode>, std::vector<std::vector<int>>> schedule;
@@ -52,6 +51,7 @@ public:
         }
     }
 };
+
 //RobotSchedule(std::vector<std::tuple<int, std::vector<std::tuple<int, int>>, std::vector<int>>> modes, vector<vector<int>> mTransTimes);
 // Create an instance of the "robot_arm_1" struct named "arm"
 // 18. November 2022 Freitag. EN Gebaeude //
@@ -80,7 +80,9 @@ public:
 //   another file where you can aufruf these functions
 //   shared files for things we share. w juan 
 int main() {
-    
+
+    //matrix<series> stackMatricesDiagonally(vector<matrix<series>> vms);
+    //gd i2gd(int a);
     try {
         schedule robot1{ {
             {0, { { 2, 1 }, { 2, 2 }, { 1, 3 },{1,4},{3,4} }, { 5,6 } } },
@@ -100,6 +102,7 @@ int main() {
         }
 
         cout << result << endl;
+        cout << stackMatricesDiagonally(result);
     }
     catch (std::exception& e) {
         std::cerr << endl
