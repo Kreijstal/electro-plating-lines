@@ -25,7 +25,7 @@ namespace std {
     struct hash<TransitionTank> {
         size_t operator()(const TransitionTank& tank) const
         {
-            return (std::hash<int>()(tank.index) << 1) & std::hash<IO>()(tank.io);
+            return (std::hash<size_t>()(tank.index) << 1) & std::hash<IO>()(tank.io);
         }
     };
 }
@@ -120,7 +120,7 @@ std::ostream& operator<<(std::ostream& os, const std::pair<T1, T2>& p)
 * arguments: a std::variant object named tand an int named matrixlength.The
 * std::variant object t can hold either a value of type IO or a value of type
 * TransitionTank.The function returns an int.*/
-int getMatrixIndex(Transition t, int matrixlength);
+size_t getMatrixIndex(Transition t, size_t matrixlength);
 enum class take_deposit {
     take,
     deposit
@@ -138,7 +138,7 @@ enum class take_deposit {
  * @param out Integer representing the number of output tank.
  * @return Transition object which can be either an IO enum (IO::INPUT or IO::OUTPUT) or a TransitionTank struct.
  */
-Transition t_convert(int tank_ID, take_deposit take_or_deposit, int last_tank);
+Transition t_convert(size_t tank_ID, take_deposit take_or_deposit, size_t last_tank);
 /**
  * @brief Converts an integer to a gd struct.
  *
@@ -279,9 +279,7 @@ typedef std::tuple<int, std::vector<std::tuple<int, int>>, std::vector<int>> mod
 class RobotSchedule {
 public:
     // Constructor
-    /*RobotSchedule(vector<RobotMode> vMode, vector<vector<int> > mTransTimes)
-        : vMode(vMode)
-        , mTransTimes(mTransTimes) {};*/
+    
         /*the mTransTimes is the matrix that represents the switching times between the modes.*/
     RobotSchedule(std::vector<mode> modes, vector<vector<int>> mTransTimes);
 

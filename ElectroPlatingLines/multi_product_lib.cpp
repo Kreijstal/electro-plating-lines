@@ -90,11 +90,11 @@ std::ostream& operator<<(std::ostream& out, const TransitionMode& mode)
  * This function calculates the matrix index based on the given Transition object (t) and matrix length (matrixlength).
  * The Transition object (t) is a std::variant that can hold either a value of type IO or a value of type TransitionTank.
  */
-int getMatrixIndex(Transition t, int matrixlength)
+size_t getMatrixIndex(Transition t, size_t matrixlength)
 {
     // Use the std::visit function to access the IO enum class based on the value
     // of the container variant
-    return std::visit([&matrixlength](auto&& arg) -> int {
+    return std::visit([&matrixlength](auto&& arg) -> size_t {
         using T = std::decay_t<decltype(arg)>;
         if
             constexpr (std::is_same_v<T, IO>)
@@ -113,7 +113,7 @@ int getMatrixIndex(Transition t, int matrixlength)
             constexpr (std::is_same_v<T, TransitionTank>)
         {
             // Use the TransitionTank class here
-            int a = 1;
+            size_t a = 1;
             a += arg.index * 2;
             return arg.io == IO::OUTPUT ? a + 1 : a;
         }
@@ -123,7 +123,7 @@ int getMatrixIndex(Transition t, int matrixlength)
 
 
 Transition
-t_convert(int tank_ID, take_deposit take_or_deposit, int out)
+t_convert(size_t tank_ID, take_deposit take_or_deposit, size_t out)
 {
     if (tank_ID == 0)
         return IO::INPUT;
@@ -403,10 +403,10 @@ RobotSchedule::RobotSchedule(std::vector<mode> modes, vector<vector<int>> mTrans
             }
             //cout << "loop internalA" << i << endl;
             if (k != 0) {
-                for (int I = 0;I < len;I++) {
+                /*for (int I = 0;I < len;I++) {
                     //cout << "accessing [" << I + (k * len) << "," << I + (i * len) <<"] I:"<<I<<" k:"<<k<<" len:"<<len << endl;
                     A(I + (k * len), I + (i * len)) = i2gd(0);
-                }
+                }*/
                 for (auto& [key, value] : getA1(schedule[i], schedule[k])) {
                     //cout << "accessing [" << t2i(std::get<0>(key)) + len << "," << t2i(std::get<1>(key)) << "] " << endl;
                     A(t2i(std::get<0>(key)) + len, t2i(std::get<1>(key))) = i2gd(value);
@@ -462,8 +462,7 @@ RobotSchedule::RobotSchedule(std::vector<mode> modes, vector<vector<int>> mTrans
             //case 1 when going from last tank in previous mode to first tank in current mode
             auto tofrom = std::make_tuple(t_convert(vMode[currMode].getInitialTank(), take_deposit::take, numOfTanks + 1),
                 t_convert(vMode[prevMode].lastTank, take_deposit::deposit, numOfTanks + 1));
-            cout << "from last tank 1st mode to 1st tank second mode:" <<
-                tofrom << endl;
+           // cout << "from last tank 1st mode to 1st tank second mode:" <<                 tofrom << endl;
             A1_matrix[tofrom] = (mTransTimes[currMode][prevMode]);
             //case 3 pass through
             
