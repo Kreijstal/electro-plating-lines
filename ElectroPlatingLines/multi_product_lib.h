@@ -6,33 +6,19 @@
 #include <variant>
 #include <unordered_map>
 #include "tuple_hash.h"
-using namespace std; //this imports the standard library, every cout and vector
-using namespace etvo; //just a library :P every matrix and series. all elements from the library
+using namespace std;
+using namespace etvo; 
 
 enum class IO {
     INPUT,
     OUTPUT
 };
-class TransitionTank {
-public:
-    int index;
-    IO io;
-};
-namespace std {
-    template <>
-    struct hash<IO> {
-        size_t operator()(const IO& io) const
-        {
-            if (io == IO::INPUT) {
-                return std::hash<int>()(0);
-            }
-            else {
-                return std::hash<int>()(1);
-            }
-        }
-    };
-}
 
+class TransitionTank { //this defines any tanks transitions EXCEPT FOR INPUT AND OUTPUT TANKS (transitions in the middle so to say).
+public:
+    int index;  //in cpp terms (starts with 0)
+    IO io;   //input and output of the TANKs transition NOT the whole schedule
+};
 
 namespace std {
     template <>
@@ -48,18 +34,23 @@ namespace std {
  * or a TransitionTank object. The IO class is an enumeration with two possible values:
  * INPUT and OUTPUT. The TransitionTank class has two public members: an index integer,
  * and an io variable of type IO.*/
-typedef std::variant<IO, TransitionTank> Transition;
-class TransitionMode {
+typedef std::variant<IO, TransitionTank> Transition; //it shows if Transition is IO or middle transition
+
+class TransitionMode { //this defines a transition mode and specifies which transition in which mode we are talking about
 public:
     int index;
     Transition transition;
 };
-inline bool operator==(const TransitionTank& lhs, const TransitionTank& rhs);
+
+inline bool operator==(const TransitionTank& lhs, const TransitionTank& rhs); //checks if these two are equal
 inline bool operator==(const Transition& lhs, const Transition& rhs);
-std::ostream& operator<<(std::ostream& os, const IO& io);
+
+std::ostream& operator<<(std::ostream& os, const IO& io); //print all the classes implemented before to see if they work these 4 lines
 std::ostream& operator<<(std::ostream& os, const TransitionTank& tank);
 std::ostream& operator<<(std::ostream& os, const Transition& a);
 std::ostream& operator<<(std::ostream& out, const TransitionMode& mode);
+
+
 template <typename... Args>
 std::ostream& operator<<(std::ostream& os, const std::tuple<Args...>& t)
 {
