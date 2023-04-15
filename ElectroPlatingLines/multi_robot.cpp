@@ -92,7 +92,16 @@ int main() {
             { { 7 } } };
         std::vector<shared_tank> tanks = {
         {1, 0} };
-        RobotOrchestra(tanks, { robot1,robot2 });
+        RobotOrchestra d(tanks, { robot1,robot2 });
+        d.vecRobotModeCollection[0].vMode[0].A0_matrix;
+        //d.vecRobotModeCollection.map(_=>_.vMode[0]);
+        std::vector<matrix<series>> result;
+
+        for (auto& item : d.vecRobotModeCollection) {
+            result.push_back(std::get<0>(item.getBigAandBMatrix({0})));
+        }
+
+        cout << result << endl;
            
         RobotOrchestra d(tanks, { robot1,robot2 });
         std::vector<matrix<series>> result;
