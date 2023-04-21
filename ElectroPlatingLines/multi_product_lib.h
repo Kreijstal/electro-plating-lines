@@ -368,3 +368,29 @@ void RobotSchedule::writeIndexes(vector<int>& L, vector<T>& B, vector<T> values)
         B[i] = values[index++];
     }
 }
+
+#ifndef _MSC_VER
+template <typename T, typename... Args>
+bool operator==(const std::variant<Args...>& lhs, const T& rhs) {
+    if constexpr (std::is_same_v<T, std::decay_t<decltype(lhs)>>) {
+        return lhs == rhs;
+    }
+    const T* value = std::get_if<T>(&lhs);
+    return value && *value == rhs;
+}
+
+template <typename T, typename... Args>
+bool operator==(const T& lhs, const std::variant<Args...>& rhs) {
+    return rhs == lhs;
+}
+
+template <typename T, typename... Args>
+bool operator!=(const std::variant<Args...>& lhs, const T& rhs) {
+    return !(lhs == rhs);
+}
+
+template <typename T, typename... Args>
+bool operator!=(const T& lhs, const std::variant<Args...>& rhs) {
+    return rhs != lhs;
+}
+#endif
