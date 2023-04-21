@@ -157,8 +157,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Hadamard_product_counters\etvo.cpp" />
+    <ClCompile Include="multiproductrewrite.cpp" />
     <ClCompile Include="multi_product_lib.cpp" />
-    <ClCompile Include="multi_robot.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Hadamard_product_counters\etvo.h" />

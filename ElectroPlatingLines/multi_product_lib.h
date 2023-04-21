@@ -16,7 +16,7 @@ enum class IO {
 
 class TransitionTank { //this defines any tanks transitions EXCEPT FOR INPUT AND OUTPUT TANKS (transitions in the middle so to say).
 public:
-    int index;  //in cpp terms (starts with 0)
+    size_t index;  //in cpp terms (starts with 0)
     IO io;   //input and output of the TANKs transition NOT the whole schedule
 };
 
@@ -38,7 +38,7 @@ typedef std::variant<IO, TransitionTank> Transition; //it shows if Transition is
 
 class TransitionMode { //this defines a transition mode and specifies which transition in which mode we are talking about
 public:
-    int index;
+    size_t index;
     Transition transition;
 };
 
@@ -201,7 +201,7 @@ public:
  *
  * @param initialTank An integer representing the initial tank.
  *        0 indicates the input tank, and numberOfTanks + 1 indicates the output tank.
- * @param modeArray A vector of tuples, where the first element is the tank number
+ * @param routeWithTimes A vector of tuples, where the first element is the tank number
  *        (0 for the input tank and numberOfTanks + 1 for the output tank),
  *        and the second element is either the transportation or movement time.
  * @param processingTimes A vector of integers representing the processing times
@@ -209,15 +209,15 @@ public:
  * @param numberOfTanks An integer representing the total number of tanks,
  *        excluding the input and output tanks.
  *
- * @throws std::invalid_argument If modeArray has an even length, or if the
+ * @throws std::invalid_argument If routeWithTimes has an even length, or if the
  *         processing times vector has an invalid length, or if the tank number
  *         is greater than the specified number of tanks.
  */
-    RobotMode(int initialTank, std::vector<std::tuple<int, int>> modeArray, std::vector<int> processingTimes, int numberOfTanks);
-    int getInitialTank() const;
-    void setInitialTank(int value);
-    vector<tuple<int, int>> getModeArray() const;
-    void setModeArray(vector<tuple<int, int>> value);
+    RobotMode(size_t initialTank, std::vector<std::tuple<size_t, int>> modeArray, std::vector<int> processingTimes, size_t numberOfTanks);
+    size_t getInitialTank() const;
+    void setInitialTank(size_t value);
+   // vector<tuple<size_t, int>> getModeArray() const;
+   // void setModeArray(vector<tuple<size_t, int>> value);
     vector<int> getProcessingTimes() const;
     void setProcessingTimes(vector<int> value);
     void update();
@@ -229,22 +229,22 @@ public:
     vector<int> finalContainersTokenCount;
     vector<int> countainerRequirements;
     std::unordered_map<tuple<Transition, Transition>, int> A0_matrix;
-    int lastTank;
+    size_t lastTank;
 private:
     /**
- * @brief Processes the modeArray and updates various data structures within the class.
+ * @brief Processes the routeWithTimes and updates various data structures within the class.
  *
- * The loopOverTupleWithTanksAndTimes() function iterates over the modeArray, which is a vector
+ * The loopOverTupleWithTanksAndTimes() function iterates over the routeWithTimes, which is a vector
  * of tuples where the first element is the tank number (0 for the input tank and
  * numOfTanks + 1 for the output tank), and the second element is either the transportation
  * or movement time. The function updates the processingTimesQueues, A0_matrix,
  * finalContainersTokenCount, and countainerRequirements data structures.
  *
- * The function distinguishes transportation operations from movement operations by checking the index of the current tuple in the modeArray. If the index is even, the operation is considered a transportation operation; if the index is odd, the operation is considered a movement operation.
+ * The function distinguishes transportation operations from movement operations by checking the index of the current tuple in the routeWithTimes. If the index is even, the operation is considered a transportation operation; if the index is odd, the operation is considered a movement operation.
  * 
  * 
  * The high-level algorithm is as follows:
- * 1. Iterate over the tuples in the modeArray.
+ * 1. Iterate over the tuples in the routeWithTimes.
  * 2. For each tuple, check if the index is even or odd.
  *    - If the index is even (transportation operation):
  *      - Update the A0_matrix with the transportation time.
@@ -256,16 +256,16 @@ private:
  *
  * The function assumes that the input data is valid and throws exceptions if certain
  * conditions are not met, such as an invalid number of tanks, an invalid length of
- * modeArray, or if processing times are not found for a given operation.
+ * routeWithTimes, or if processing times are not found for a given operation.
  */
     void loopOverTupleWithTanksAndTimes();
-    void processTransportation(unsigned int index, unsigned int previousTank, unsigned int currentTank, queue<int>& q);
-    void processMovement(unsigned int index, unsigned int previousTank, unsigned int currentTank);
+    void processTransportation(size_t index, Transition previousTank, Transition currentTank, queue<int>& q);
+    void processMovement(size_t index, Transition previousTank, Transition currentTank);
     void updateContainerRequirements();
-    int numOfTanks;
-    int initialTank;
+    size_t numOfTanks;
+    size_t initialTank;
 
-    vector<tuple<int, int>> modeArray;
+    vector<tuple<Transition, int>> routeWithTimes;
     vector<int> processingTimes;
 };
 
@@ -275,7 +275,7 @@ matrix<series> getXfromMatrix(matrix<series>& ms);
 void printSize(matrix<series>& a);
 void printMatrix(matrix<series>& a);
 
-typedef std::tuple<int, std::vector<std::tuple<int, int>>, std::vector<int>> mode;
+typedef std::tuple<size_t, std::vector<std::tuple<size_t, int>>, std::vector<int>> mode;
 class RobotSchedule {
 public:
     // Constructor
@@ -313,7 +313,7 @@ private:
     vector<T> readIndexes(vector<int>& L, vector<T>& B);
     template <typename T>
     void writeIndexes(vector<int>& L, vector<T>& B, vector<T> values);
-    int getMaxValue(const std::vector<mode>& vec);
+    size_t getMaxValue(const std::vector<mode>& vec);
     
 };
 /**
@@ -368,3 +368,29 @@ void RobotSchedule::writeIndexes(vector<int>& L, vector<T>& B, vector<T> values)
         B[i] = values[index++];
     }
 }
+
+#ifndef _MSC_VER
+template <typename T, typename... Args>
+bool operator==(const std::variant<Args...>& lhs, const T& rhs) {
+    if constexpr (std::is_same_v<T, std::decay_t<decltype(lhs)>>) {
+        return lhs == rhs;
+    }
+    const T* value = std::get_if<T>(&lhs);
+    return value && *value == rhs;
+}
+
+template <typename T, typename... Args>
+bool operator==(const T& lhs, const std::variant<Args...>& rhs) {
+    return rhs == lhs;
+}
+
+template <typename T, typename... Args>
+bool operator!=(const std::variant<Args...>& lhs, const T& rhs) {
+    return !(lhs == rhs);
+}
+
+template <typename T, typename... Args>
+bool operator!=(const T& lhs, const std::variant<Args...>& rhs) {
+    return rhs != lhs;
+}
+#endif

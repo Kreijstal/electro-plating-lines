@@ -4,34 +4,18 @@ int main()
     try {
     
         RobotSchedule a({
-            {1, { { 2, 1 }, { 0, 2 }, { 1, 3 } }, { 10 } },
-            {0, { { 1, 1 }, { 1, 2 }, { 2, 3 } }, { 10 } } 
+            {1, { { 3, 1 }, { 0, 2 }, { 1, 3 } }, { 10 } },
+            {0, { { 1, 1 }, { 1, 2 }, { 3, 3 } }, { 10 } } ,
+            //{0, { { 1, 1 }, { 0, 2 }, { 2, 3 },{1,5} ,{3,6},{2,7},{3,8} }, { 10,20 } }
+           //won't work,(yet) why?, because it reuses the input transition twice
+            {0, { { 2, 1 }, { 2, 4 }, { 3, 3 } }, { 9 } }
             },
-            { { 1, 2 },
-              { 3, 4 } });
+            { { 1, 2, 5},
+              { 3, 4, 6},
+              { 7, 8, 9} });
         //cout << "TEST" << endl;
         matrix<series> A, B;
-        std::tie(A, B) =a.getBigAandBMatrix({0,0});
-        matrix<series> Asimilar(2, 2);
-        //Asimilar(0, 3) = gd(0,2);
-        //Asimilar(0, 4) = gd(1, 0);
-        //Asimilar(1, 0) = gd(0, 3);
-        //Asimilar(1, 5) = gd(1, 0);
-        //Asimilar(2, 6) = gd(1, 0);
-        //Asimilar(3, 2) = gd(0, 1);
-        //Asimilar(3, 5) = gd(1, 0);
-        //Asimilar(3, 7) = gd(1, 0);
-        //Asimilar(4, 0) = gd(0, 0);
-        Asimilar(0, 1) = gd(1, 10);
-      //  Asimilar(4, 6) = gd(1, 0);
-       // Asimilar(4, 7) = gd(0, 2);
-       // Asimilar(5, 1) = gd(0, 0);
-        Asimilar(1, 0)=gd(0, 3);
-        /*Asimilar(6, 1) = gd(0, 10);
-        Asimilar(6, 2)=gd(0, 0);
-        Asimilar(7, 3)=gd(0, 0);
-        Asimilar(7, 6)=gd(0, 1);
-        
+        std::tie(A, B) =a.getBigAandBMatrix({2,2});
         //cout << "TEST" << endl;
         //matrix<series> x = getXfromMatrix(A);
         //g1.d15+(g2.d23)

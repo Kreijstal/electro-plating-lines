@@ -101,14 +101,6 @@ int main() {
             result.push_back(std::get<0>(item.getBigAandBMatrix({0})));
         }
 
-        cout << result << endl;
-           
-        RobotOrchestra d(tanks, { robot1,robot2 });
-        std::vector<matrix<series>> result;
-
-        for (auto& item : d.vecRobotModeCollection) {
-            result.push_back(std::get<0>(item.getBigAandBMatrix({ 0 })));
-        }
 
         cout << result << endl;
         cout << stackMatricesDiagonally(result);
