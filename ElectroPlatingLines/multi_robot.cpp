@@ -20,10 +20,10 @@ struct robot_arm //merged the robot arm struct (can take unendless amount of rob
     std::vector<tuple<int,int>> robot_route;  //
 };
 
-//RobotMode(int initialTank, std::vector<std::tuple<int, int>> modeArray, std::vector<int> processingTimes, int numberOfTanks);
+//RobotRoute(int initialTank, std::vector<std::tuple<int, int>> modeArray, std::vector<int> processingTimes, int numberOfTanks);
 
 
-//RobotMode(int initialTank, std::vector<std::tuple<int, int>> modeArray, std::vector<int> processingTimes, int numberOfTanks);
+//RobotRoute(int initialTank, std::vector<std::tuple<int, int>> modeArray, std::vector<int> processingTimes, int numberOfTanks);
 //initialTank
 
 struct shared_tank //struct to represent limited amount of shared tanks
@@ -31,7 +31,7 @@ struct shared_tank //struct to represent limited amount of shared tanks
     int time; 
     unsigned int places;//For now we only support 0 or 1.
 };
-typedef std::tuple<std::vector<mode>, std::vector<std::vector<int>>> schedule;
+typedef std::tuple<std::vector<Route>, std::vector<std::vector<int>>> schedule;
 
 class RobotOrchestra
 {
@@ -45,9 +45,9 @@ public:
         std::vector<schedule> schedules
         ): shared_tanks(tanks)
     {
-        for (const auto& [mode, mTransTimes] : schedules)
-        {
-            vecRobotModeCollection.emplace_back(mode, mTransTimes);
+        for (const auto& [vmode, mTransTimes] : schedules) {
+            // Create a RobotSchedule object and push it into the vecRobotModeCollection vector
+            vecRobotModeCollection.emplace_back(vmode, mTransTimes);
         }
     }
 };
@@ -84,7 +84,7 @@ int main() {
     //matrix<series> stackMatricesDiagonally(vector<matrix<series>> vms);
     //gd i2gd(int a);
     try {
-        schedule robot1{ {
+        schedule robot1{{
             {0, { { 2, 1 }, { 2, 2 }, { 1, 3 },{1,4},{3,4} }, { 5,6 } } },
             { { 7 } } };
         schedule robot2{ {
