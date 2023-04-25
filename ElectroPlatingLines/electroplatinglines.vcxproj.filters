@@ -21,7 +21,7 @@
     <ClCompile Include="multi_product_lib.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="multiproductrewrite.cpp">
+    <ClCompile Include="multi_robot.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
