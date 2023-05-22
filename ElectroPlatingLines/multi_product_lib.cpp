@@ -31,7 +31,7 @@ inline bool operator==(const TankTransitionRelation& lhs, const TankTransitionRe
 }
 inline bool operator==(const Transition& lhs, const Transition& rhs)
 {
-    return lhs.index == rhs.index && lhs.transition == rhs.transition;
+    return lhs.repetitionIndex == rhs.repetitionIndex && lhs.transition == rhs.transition;
 }
 
 std::ostream& operator<<(std::ostream& os, const IO& io)
@@ -77,7 +77,7 @@ std::ostream& operator<<(std::ostream& os, const TankTransitionRelation& a)
 
 std::ostream& operator<<(std::ostream& out, const Transition& tr)
 {
-    out << "Transition: tankrep=" << tr.index << ", transition=" << tr.transition;
+    out << "Transition: tankrep=" << tr.repetitionIndex << ", transition=" << tr.transition;
     return out;
 }
 
@@ -138,7 +138,7 @@ size_t getMatrixIndex(TankTransitionRelation t, size_t matrixlength)
 
 size_t getMatrixIndex(Transition t, size_t matrixlength)
 {
-    return getMatrixIndex(t.transition, matrixlength) + (t.index * matrixlength);
+    return getMatrixIndex(t.transition, matrixlength) + (t.repetitionIndex * matrixlength);
 }
 
 
@@ -242,7 +242,7 @@ RobotRoute::RobotRoute(size_t initialTank, vector<tuple<size_t, int> > modeArray
     numMatrixRepeats++;//The count was previously on the data seen so far, since we added one, then we add one here, as well.
     std::fill(countainerRequirements.begin(), countainerRequirements.end(), 0);
     std::fill(finalContainersTokenCount.begin(), finalContainersTokenCount.end(), 0);
-    loopOverTupleWithTanksAndTimes();
+    loopOverTupleWithTanksAndTimes();   
     validate();
 }
 
@@ -347,7 +347,7 @@ void RobotRoute::processTransportation(size_t stationIndex, Transition previousT
             //Get the next value from the processing time vector
             popped = processingTimesQueues[tankindex].front();
             processingTimesQueues[tankindex].pop();
-            auto s = std::make_tuple(Transition{ previousTransition.index,ProcessingStationTransition{ tankindex ,IO::OUTPUT} }, Transition{ previousTransition.index,
+            auto s = std::make_tuple(Transition{ previousTransition.repetitionIndex,ProcessingStationTransition{ tankindex ,IO::OUTPUT} }, Transition{ previousTransition.repetitionIndex,
                 ProcessingStationTransition{ tankindex ,IO::INPUT } });
             if (A0_matrix.find(s) != A0_matrix.end()) {
                 /*cout << "previousTransition" << previousTransition << "g" << A0_matrix[s] << "WHAT" << popped << "  ," << s << endl;
@@ -363,7 +363,7 @@ void RobotRoute::processTransportation(size_t stationIndex, Transition previousT
         auto currdumindex = std::get<ProcessingStationTransition>(currentTransition.transition).index;
         finalContainersTokenCount[currdumindex]++;
         if (q.empty()) {
-            //cout << "index:"<<stationIndex<<",previousTransition:"<<previousTransition<< ",currentTransition:"<<currentTransition<<endl;
+            //cout << "repetitionIndex:"<<stationIndex<<",previousTransition:"<<previousTransition<< ",currentTransition:"<<currentTransition<<endl;
             throw runtime_error("q Queue was empty, this probably means you didn't write your Route correctly, or there were not enough processing times given for this route.");
         }
         processingTimesQueues[currdumindex].push(q.front());
