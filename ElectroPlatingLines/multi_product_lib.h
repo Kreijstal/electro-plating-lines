@@ -32,13 +32,13 @@ namespace std {
 
 /*The Transition class is defined as a variant that can either be an IO object
  * or a ProcessingStationTransition object. The IO class is an enumeration with two possible values:
- * INPUT and OUTPUT. The ProcessingStationTransition class has two public members: an index integer,
+ * INPUT and OUTPUT. The ProcessingStationTransition class has two public members: an repetitionIndex integer,
  * and an io variable of type IO.*/
 typedef std::variant<IO, ProcessingStationTransition> TankTransitionRelation; //it shows if Transition is IO or middle transition
 
-class Transition { //this defines a transition Route and specifies which transition in which Route we are talking about
+class Transition { //this defines a transition Route and specifies which transition in which Repetition we're talking about
 public:
-    size_t index;
+    size_t repetitionIndex;
     TankTransitionRelation transition;
 };
 namespace std {
@@ -46,7 +46,7 @@ namespace std {
     struct hash<Transition> {
         size_t operator()(const Transition& transition) const
         {
-            return std::hash<size_t>()(transition.index) ^ (std::hash<TankTransitionRelation>()(transition.transition) << 1);
+            return std::hash<size_t>()(transition.repetitionIndex) ^ (std::hash<TankTransitionRelation>()(transition.transition) << 1);
         }
     };
 }
@@ -63,6 +63,7 @@ inline bool operator==(const Transition& lhs, const Transition& rhs);
 std::ostream& operator<<(std::ostream& os, const IO& io); //print all the classes implemented before to see if they work these 4 lines
 std::ostream& operator<<(std::ostream& os, const ProcessingStationTransition& tank);
 std::ostream& operator<<(std::ostream& os, const TankTransitionRelation& a);
+std::ostream& operator<<(std::ostream& out, const Transition& tr);
 std::ostream& operator<<(std::ostream& out, const TransitionMode& mode);
 
 
@@ -146,7 +147,7 @@ enum class take_deposit {
  * This function takes three parameters: an integer tank_ID representing the numeric input (meaning the tank number),
  * an enum take_or_deposit indicating, whether it's an input or output transition, and an integer out/last_tank. It maps the numeric input to a Transition
  * object based on the tank and whether it's an input or output transition. The function returns a Transition
- * object that can be either an IO (input/output) or a ProcessingStationTransition (with a tank index and an IO status).
+ * object that can be either an IO (input/output) or a ProcessingStationTransition (with a tank repetitionIndex and an IO status).
  *
  * @param tank_ID Integer representing the numeric input. #(where the transitions begin)#
  * @param lr Enum of type take_or_deposit, where take_or_deposit::take represents an input transition and lr::deposit represents an output transition.
@@ -258,17 +259,17 @@ private:
  * or movement time. The function updates the processingTimesQueues, A0_matrix,
  * finalContainersTokenCount, and countainerRequirements data structures.
  *
- * The function distinguishes transportation operations from movement operations by checking the index of the current tuple in the routeWithTimes. If the index is even, the operation is considered a transportation operation; if the index is odd, the operation is considered a movement operation.
+ * The function distinguishes transportation operations from movement operations by checking the repetitionIndex of the current tuple in the routeWithTimes. If the repetitionIndex is even, the operation is considered a transportation operation; if the repetitionIndex is odd, the operation is considered a movement operation.
  * 
  * 
  * The high-level algorithm is as follows:
  * 1. Iterate over the tuples in the routeWithTimes.
- * 2. For each tuple, check if the index is even or odd.
- *    - If the index is even (transportation operation):
+ * 2. For each tuple, check if the repetitionIndex is even or odd.
+ *    - If the repetitionIndex is even (transportation operation):
  *      - Update the A0_matrix with the transportation time.
  *      - Adjust the finalContainersTokenCount vector based on the transportation operation.
  *      - Update the processing times for the corresponding tanks.
- *    - If the index is odd (movement operation), update the A0_matrix with the movement time.
+ *    - If the repetitionIndex is odd (movement operation), update the A0_matrix with the movement time.
  * 3. Calculate the minimum number of tokens required in each container based on the
  *    finalContainersTokenCount vector.
  *
@@ -303,7 +304,7 @@ public:
     vector<RobotRoute> vMode;
     vector<vector<int>> mTransTimes;
     //vector<matrix<series>> B_matrices;
-    std::unordered_map<tuple<Transition, Transition>, series> A0_matrices;
+    //std::unordered_map<tuple<Transition, Transition>, series> A0_matrices;
     int numOfTanks;
     vector<tuple<int, int>> A1data;
     //vector<matrix<series>> C_matrices;
@@ -349,7 +350,7 @@ vector<int> etvoVector2stdVector(matrix<series> i);
 *
 * This function creates a matrix of series objects using the given map of transition pairs
 * and integers, and a vector of transitions for indexing. It uses a lambda function to find
-* the index of a transition in the indexT vector.
+* the repetitionIndex of a transition in the indexT vector.
 *
 * @param indexT A vector of Transition objects, used for indexing.
 * @param Amap An unordered_map containing pairs of Transition objects as keys and integers as values.

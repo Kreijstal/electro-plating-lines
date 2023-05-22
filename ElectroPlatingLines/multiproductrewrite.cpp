@@ -9,12 +9,22 @@ int main()
             {0, { { 1, 1 }, { 0, 2 }, { 2, 3 },{1,5} ,{3,6},{2,7},{3,8} }, { 10,20 } }
            // {0, { { 2, 1 }, { 2, 4 }, { 3, 3 } }, { 9 } }
             },
+            
             { { 1, 2, 5},
               { 3, 4, 6},
               { 7, 8, 9} });
-
+              
+        /*RobotSchedule a({
+            {1, { { 2, 1 }, { 0, 2 }, { 1, 3 } }, { 10 } },
+            {0, { { 1, 1 }, { 1, 2 }, { 2, 3 } }, { 10 } }
+            },
+            { { 1, 2 },
+              { 3, 4 } }); 
+              */
         matrix<series> A, B;
-        std::tie(A, B) =a.getBigAandBMatrix({2,2});
+        cout << a.vMode[0].A0_matrix << "A MATRIX first thing end" << endl;
+
+        std::tie(A, B) =a.getBigAandBMatrix({1,2});
 
         auto c = A.star();
         cout << "now this is A:" << endl << A << "END" << endl;
