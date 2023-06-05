@@ -11,7 +11,7 @@
 #include <cstddef>
 #include <numeric>
 
-
+/*
 struct robot_arm //merged the robot arm struct (can take unendless amount of robot arm information instead of one struct for all the robot arms
 {    
     std::vector<int> robot_movement_time;  //robot movement times without carrying a piece
@@ -19,7 +19,7 @@ struct robot_arm //merged the robot arm struct (can take unendless amount of rob
     std::vector<int> robot_processing_time;  //
     std::vector<tuple<int,int>> robot_route;  //
 };
-
+*/
 //RobotRoute(int initialTank, std::vector<std::tuple<int, int>> modeArray, std::vector<int> processingTimes, int numberOfTanks);
 
 
@@ -103,8 +103,7 @@ int main() {
         std::vector<shared_tank> tanks = { {78, 0} };
 
         RobotOrchestra d(tanks, robots);
-        d.vecRobotModeCollection[0].vMode[0].A0_matrix;
-        (d.vecRobotModeCollection[0].numOfTanks + 1) * 2;
+
         //d.vecRobotModeCollection.map(_=>_.vMode[0]);
         std::vector<matrix<series>> result;
 
