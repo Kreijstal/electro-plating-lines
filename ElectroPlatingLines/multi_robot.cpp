@@ -84,26 +84,57 @@ int main() {
     //matrix<series> stackMatricesDiagonally(vector<matrix<series>> vms);
     //gd i2gd(int a);
     try {
-        schedule robot1{{
-            {0, { { 2, 1 }, { 2, 2 }, { 1, 3 },{1,4},{3,4} }, { 5,6 } } },
-            { { 7 } } };
-        schedule robot2{ {
-            {0, { { 1, 1 }, { 1, 2 }, { 2, 3 },{2,4},{3,4} }, { 5,6 } } },
-            { { 7 } } };
-        std::vector<shared_tank> tanks = {
-        {1, 0} };
-        RobotOrchestra d(tanks, { robot1,robot2 });
+        //we have one shared tank because 2-1=1 (number of robots-1=number shared tanks)
+        std::vector<schedule> robots = {
+    {
+        {
+            {0, { { 2, 1 }, { 2, 2 }, { 1, 3 }, { 1, 4 }, { 3, 4 } }, { 5, 6 } }
+        },
+        { { 7 } }
+    },
+    {
+        {
+            {0, { { 1, 1 }, { 1, 2 }, { 2, 3 }, { 2, 4 }, { 3, 4 } }, { 5, 6 } }
+        },
+        { { 7 } }
+    }
+        };
+
+        std::vector<shared_tank> tanks = { {78, 0} };
+
+        RobotOrchestra d(tanks, robots);
         d.vecRobotModeCollection[0].vMode[0].A0_matrix;
+        (d.vecRobotModeCollection[0].numOfTanks + 1) * 2;
         //d.vecRobotModeCollection.map(_=>_.vMode[0]);
         std::vector<matrix<series>> result;
 
         for (auto& item : d.vecRobotModeCollection) {
             result.push_back(std::get<0>(item.getBigAandBMatrix({0})));
         }
+        matrix<series> thebigoutputmatrix = stackMatricesDiagonally(result);
+        int p = 0;
+        for (size_t i = 0; i < d.vecRobotModeCollection.size() - 1; ++i) {
+            const RobotSchedule& robotSchedule = d.vecRobotModeCollection[i];
+            int numOfTanks = robotSchedule.numOfTanks;
+
+            // Calculate the position p and update it for the next iteration
+            p += (numOfTanks + 1) * 2;
+
+            // Iterate over the routes in the current RobotSchedule
+            for (const RobotRoute& route : robotSchedule.vMode) {
+                // Get the shared tank information
+                int tankTime = d.shared_tanks[i].time;
+                unsigned int tankPlaces = d.shared_tanks[i].places;
+
+                cout << "this is tankTime" << tankTime << " tankPlaces" << tankPlaces << "position " << p << "," << p - 1 << endl;
+                thebigoutputmatrix(p, p - 1) = gd(tankPlaces, tankTime);
+            }
+        }
 
 
-        cout << result << endl;
-        cout << stackMatricesDiagonally(result);
+
+       
+        cout << thebigoutputmatrix;
     }
     catch (std::exception& e) {
         std::cerr << endl
