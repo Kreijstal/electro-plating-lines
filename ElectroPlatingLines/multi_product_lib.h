@@ -297,9 +297,9 @@ class RobotSchedule {
 public:
     // Constructor
     
-        /*the mTransTimes is the matrix that represents the switching times between the modes.*/
-    RobotSchedule(std::vector<Route> modes, std::vector<std::vector<int>> mTransTimes);
-
+        /*the mTransTimes is the matrix that represents the switching times between the routes.*/
+    RobotSchedule(std::vector<Route> routes, std::vector<std::vector<int>> mTransTimes);
+    //mtranstimes is a square matrix with the length of the routes
     // Attributes
     vector<RobotRoute> vMode;
     vector<vector<int>> mTransTimes;

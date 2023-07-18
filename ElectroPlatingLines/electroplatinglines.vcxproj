@@ -87,10 +87,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <ExecutablePath>C:\Users\Acer\source\repos\Hadamard_product_counters;$(ExecutablePath)</ExecutablePath>
-    <IncludePath>C:\Users\Acer\source\repos\Hadamard_product_counters;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\kreij\source\repos\Hadamard_product_counters;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>C:\Users\kreij\source\repos\Hadamard_product_counters;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
