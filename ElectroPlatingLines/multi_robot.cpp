@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <numeric>
 
+
 /*
 struct robot_arm //merged the robot arm struct (can take unendless amount of robot arm information instead of one struct for all the robot arms
 {    
@@ -269,7 +270,7 @@ RobotOrchestra get_robot_orchestra() {
         num_routes = get_and_confirm<size_t>(get_non_zero_number<size_t>, "Please give in the number of routes for the current hoist:");
 
         for (size_t j = 0; j < num_routes; ++j) {
-            std::cout << "Enter route "<< j+1<<" and keep in mind that the indices of tanks are relative to each robot, meaning it starts by zero for each tank:\n";
+            std::cout << "Enter route "<< j+1<<" and keep in mind that the indices of tanks are relative to each robot, meaning it starts by zero:\n";
             routes.push_back(get_and_confirm<Route>(get_route, ""));
         }
 

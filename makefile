@@ -8,7 +8,7 @@ ETVO_OBJECT = ../Hadamard_product_counters/etvo.o
 CC = g++
 CFLAGS = -I ../Hadamard_product_counters/ -std=c++17
 
-$(ETVO_OBJECT):
+hadamard: $(ETVO_OBJECT)
 	@if [ ! -d "../Hadamard_product_counters" ]; then \
 		echo "Warning: Hadamard_product_counters directory not found."; \
         else \

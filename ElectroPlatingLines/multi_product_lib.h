@@ -8,6 +8,22 @@
 #include "tuple_hash.h"
 using namespace std;
 using namespace etvo; 
+//forward declarations
+template <typename... Args>
+std::ostream& operator<<(std::ostream& os, const std::tuple<Args...>& t);
+
+template <typename T>
+std::ostream& operator<<(std::ostream& out, const std::vector<T>& vec);
+
+template <typename Key, typename Value>
+std::ostream& operator<<(std::ostream& out, const std::unordered_map<Key, Value>& map);
+
+template <typename T>
+std::ostream& operator<<(std::ostream& out, const std::queue<T>& q);
+
+template<typename T1, typename T2>
+std::ostream& operator<<(std::ostream& os, const std::pair<T1, T2>& p);
+
 #define TODO() throw std::runtime_error("Not implemented: " __FILE__ ":" + std::to_string(__LINE__))
 enum class IO {
     INPUT,
@@ -388,6 +404,13 @@ void RobotSchedule::writeIndexes(vector<int>& L, vector<T>& B, vector<T> values)
 
 //variant equality is implemented in MSVC so it failed when I tried on g++
 #ifndef _MSC_VER
+template<typename T1, typename T2>
+std::ostream& operator<<(std::ostream& os, const std::tuple<T1, T2>& tup)
+{
+    os << "(" << std::get<0>(tup) << ", " << std::get<1>(tup) << ")";
+    return os;
+}
+
 template <typename T, typename... Args>
 bool operator==(const std::variant<Args...>& lhs, const T& rhs) {
     if constexpr (std::is_same_v<T, std::decay_t<decltype(lhs)>>) {
@@ -411,4 +434,22 @@ template <typename T, typename... Args>
 bool operator!=(const T& lhs, const std::variant<Args...>& rhs) {
     return rhs != lhs;
 }
+
+/*std::ostream& operator<<(std::ostream& os, const Route& route) {
+    os << "Route: {\n";
+    os << "  size_t: " << std::get<0>(route) << ",\n";
+    os << "  vector of tuples: [\n";
+    for (const auto& item : std::get<1>(route)) {
+        os << "    { " << std::get<0>(item) << ", " << std::get<1>(item) << " },\n";
+    }
+    os << "  ],\n";
+    os << "  vector of ints: [\n";
+    for (const auto& item : std::get<2>(route)) {
+        os << "    " << item << ",\n";
+    }
+    os << "  ]\n";
+    os << "}\n";
+    return os;
+}*/
+
 #endif

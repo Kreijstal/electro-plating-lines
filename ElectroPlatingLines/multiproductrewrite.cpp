@@ -1,4 +1,18 @@
 #include "multi_product_lib.h"
+template <typename... Args>
+std::ostream& operator<<(std::ostream& os, const std::tuple<Args...>& t);
+
+template <typename T>
+std::ostream& operator<<(std::ostream& out, const std::vector<T>& vec);
+
+template <typename Key, typename Value>
+std::ostream& operator<<(std::ostream& out, const std::unordered_map<Key, Value>& map);
+
+template <typename T>
+std::ostream& operator<<(std::ostream& out, const std::queue<T>& q);
+
+template<typename T1, typename T2>
+std::ostream& operator<<(std::ostream& os, const std::pair<T1, T2>& p);
 std::vector<int> get_vector() {
     while (true) {
         std::string line;
@@ -103,10 +117,33 @@ T get_and_confirm(const std::function<T()>& parser, const std::string& prompt) {
     return result;
 }
 
+RobotSchedule prompt_for_robot_schedule() {
+    int numRoutes = get_and_confirm<int>([]() -> int {
+        int x;
+        while (!(std::cin >> x)) { // if the extraction fails
+            std::cin.clear(); // clears the error state
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // discards the input
+            std::cout << "Invalid input. Please enter a number: ";
+        }
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // removes the '\n' character from the input buffer
+        return x;
+    }, "Enter the number of routes of the hoist: ");
+
+    std::vector<Route> routes;
+    
+    for (int i = 0; i < numRoutes; i++) {
+        routes.push_back(get_and_confirm<Route>(get_route, "Enter details for route " + std::to_string(i + 1) + ":\n"));
+    }
+
+    auto mmatrix = get_and_confirm<std::vector<std::vector<int>>>([&numRoutes]() { return get_matrix(numRoutes); }, "Enter details for the transition times matrix:\n");
+
+    return RobotSchedule(routes, mmatrix);
+}
 
 
 int main() {
     while (true) {
+        /*
         int numRoutes = get_and_confirm<int>([]() -> int {
             int x;
             while (!(std::cin >> x)) { // if the extraction fails
@@ -120,18 +157,21 @@ int main() {
 
 
         std::vector<Route> routes;
+        
         for (int i = 0; i < numRoutes; i++) {
             routes.push_back(get_and_confirm<Route>(get_route, "Enter details for route " + std::to_string(i + 1) + ":\n"));
         }
 
         auto mmatrix = get_and_confirm<std::vector<std::vector<int>>>([&numRoutes]() { return get_matrix(numRoutes); }, "Enter details for the transition times matrix:\n");
+        */
         try {
 
-            RobotSchedule schedule(routes, mmatrix);
-            /*RobotSchedule a({
-            {1, { { 3, 1 }, { 0, 2 }, { 1, 3 } }, { 10 } },
+            RobotSchedule schedule = promp0t_for_robot_schedule();
+
+            /*RobotSchedule schedule({
+            {0, { { 3, 1 } }, { } },
             {0, { { 1, 1 }, { 1, 2 }, { 3, 3 } }, { 10 } } ,
-            {0, { { 1, 1 }, { 0, 2 }, { 2, 3 },{1,5} ,{3,6},{2,7},{3,8} }, { 10,20 } }
+            {0, { { 1, 1 }, { 1, 2 }, { 2, 3 },{2,5} ,{3,6} }, { 10,20 } }
            // {0, { { 2, 1 }, { 2, 4 }, { 3, 3 } }, { 9 } }
             },
             
@@ -141,6 +181,7 @@ int main() {
             matrix<series> A, B;
             int numRoutes;
             std::vector<int> vec;
+            
             do {
                 cout << "Enter the schedule, this is a space-separated list of numbers representing the index of the route where the hoist is going to cycle, for example \"1 2\" would mean (1 2)^w" << endl;
                 vec = get_and_confirm<std::vector<int>>(get_vector, "The list of routes is: ");
