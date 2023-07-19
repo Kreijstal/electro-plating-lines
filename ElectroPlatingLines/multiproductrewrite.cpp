@@ -166,7 +166,7 @@ int main() {
         */
         try {
 
-            RobotSchedule schedule = promp0t_for_robot_schedule();
+            RobotSchedule schedule = prompt_for_robot_schedule();
 
             /*RobotSchedule schedule({
             {0, { { 3, 1 } }, { } },
