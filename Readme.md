@@ -71,3 +71,6 @@ Both programs are interactive and will prompt for user input once started. Pleas
 1. `multiproductrewrite`: This program models and manages tasks for electroplating lines with multiple products. 
 
 2. `multi_robot`: This program extends the capabilities of `multiproductrewrite` by adding the management of multiple robots.
+
+Info there is a small port of this in rust
+https://git.tu-berlin.de/kreijstal/rust-etvo-electro-platinglines
